@@ -186,7 +186,7 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
 def perform_CMTF(tOrig=None, mOrig=None, r=6):
     """ Perform CMTF decomposition. """
     if tOrig is None:
-        tOrig, _ Tensor3D
+        tOrig, _ = Tensor3D
 
     tFac = initialize_cp(tOrig, mOrig, r)
 
