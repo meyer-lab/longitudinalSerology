@@ -1,4 +1,4 @@
-flist = 2 3 4 5 6 EV1 EV3
+flist = 6
 
 all: $(patsubst %, output/figure%.svg, $(flist))
 
