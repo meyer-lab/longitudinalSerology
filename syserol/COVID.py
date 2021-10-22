@@ -19,7 +19,10 @@ def pbsSubtractOriginal():
     df["patient_ID"] = df["patient_ID"].astype('int32')
     df["group"] = pd.Categorical(df["group"], ["Negative", "Mild", "Moderate", "Severe", "Deceased"])
     df = df.sort_values(by=["group", "days", "patient_ID"])
-    return df.reset_index()
+    df = df.reset_index()
+    # Get rid of any data that doesn't have a time component (i.e. "nan" for day)
+    df = df.dropna(subset=["days"]).reset_index(drop=True)
+    return df
 
 
 def to_slice(subjects, df):
@@ -41,21 +44,24 @@ def to_slice(subjects, df):
     return tensor
 
 
-def Tensor3D():
+def Tensor4D():
     """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
     df = pbsSubtractOriginal()
     Rlabels, AgLabels = dimensionLabel3D()
+    days = np.unique(df["days"])
 
-    tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)
+    tensor = np.full((len(df), len(AgLabels), len(Rlabels), len(days)), np.nan) # 4D
     missing = 0
 
     for rii, recp in enumerate(Rlabels):
         for aii, anti in enumerate(AgLabels):
-            try:
-                dfAR = df[recp + "_" + anti]
-                tensor[:, aii, rii] = dfAR.values
-            except KeyError:
-                missing += 1
+            for dii, day in enumerate(days):
+                try:
+                    dfDay = df[df["days"] == day]
+                    dfAR = dfDay[recp + "_" + anti]
+                    tensor[dfAR.index, aii, rii, dii] = dfAR.values
+                except KeyError:
+                    missing += 1
 
     tensor = np.clip(tensor, 10.0, None)
     tensor = np.log10(tensor)
