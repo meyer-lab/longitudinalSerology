@@ -18,9 +18,9 @@ def buildGlycan(tFac):
     return tFac.factors[0] @ tFac.mFactor.T
 
 
-def calcR2X(tFac, tIn=None, mIn=None):
+def calcR2X(tFac, tIn=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
-    assert (tIn is not None) or (mIn is not None)
+    assert (tIn is not None)
 
     vTop, vBottom = 0.0, 0.0
 
@@ -28,11 +28,6 @@ def calcR2X(tFac, tIn=None, mIn=None):
         tMask = np.isfinite(tIn)
         vTop += np.sum(np.square(tl.cp_to_tensor(tFac) * tMask - np.nan_to_num(tIn)))
         vBottom += np.sum(np.square(np.nan_to_num(tIn)))
-    if mIn is not None:
-        mMask = np.isfinite(mIn)
-        recon = tFac if isinstance(tFac, np.ndarray) else buildGlycan(tFac)
-        vTop += np.sum(np.square(recon * mMask - np.nan_to_num(mIn)))
-        vBottom += np.sum(np.square(np.nan_to_num(mIn)))
 
     return 1.0 - vTop / vBottom
 
@@ -145,7 +140,7 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
+def initialize_cp(tensor: np.ndarray, rank: int):
     r"""Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -159,9 +154,6 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
     factors = []
     for mode in range(tl.ndim(tensor)):
         unfold = tl.unfold(tensor, mode)
-
-        if mode == 0 and (matrix is not None):
-            unfold = np.hstack((unfold, matrix))
 
         # Remove completely missing columns
         unfold = unfold[:, np.sum(np.isfinite(unfold), axis=0) > 2]
@@ -183,48 +175,31 @@ def initialize_cp(tensor: np.ndarray, matrix: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CMTF(tOrig=None, mOrig=None, r=6):
+def perform_CMTF(tOrig=None, r=6):
     """ Perform CMTF decomposition. """
     if tOrig is None:
-        tOrig, _ = Tensor3D
+        tOrig, _ = Tensor3D()
 
-    tFac = initialize_cp(tOrig, mOrig, r)
+    tFac = initialize_cp(tOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
 
-    if mOrig is not None:
-        uniqueInfoM = np.unique(np.isfinite(mOrig), axis=1, return_inverse=True)
-        tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
-        unfolded[0] = np.hstack((unfolded[0], mOrig))
-
     R2X_last = -np.inf
-    tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+    tFac.R2X = calcR2X(tFac, tOrig)
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     for ii in range(2000):
-        # Solve for the subject matrix
-        kr = khatri_rao(tFac.factors, skip_matrix=0)
-
-        if mOrig is not None:
-            kr = np.vstack((kr, tFac.mFactor))
-
-        tFac.factors[0] = censored_lstsq(kr, unfolded[0].T, uniqueInfo[0])
-
-        # PARAFAC on other antigen modes
-        for m in range(1, len(tFac.factors)):
+        # PARAFAC on all modes
+        for m in range(0, len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
-
-        # Solve for the glycan matrix fit
-        if mOrig is not None:
-            tFac.mFactor = censored_lstsq(tFac.factors[0], mOrig, uniqueInfoM)
-
+        
         if ii % 2 == 0:
             R2X_last = tFac.R2X
-            tFac.R2X = calcR2X(tFac, tOrig, mOrig)
+            tFac.R2X = calcR2X(tFac, tOrig)
             assert tFac.R2X > 0.0
 
         if tFac.R2X - R2X_last < 1e-6:
