@@ -45,23 +45,27 @@ def to_slice(subjects, df):
 
 
 def Tensor4D():
-    """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
+    """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """
     df = pbsSubtractOriginal()
+    subjects = np.unique(df['patient_ID'])
     Rlabels, AgLabels = dimensionLabel3D()
     days = np.unique(df["days"])
+    ndf = df.iloc[:, np.hstack([[1,10], np.arange(23, len(df.columns))])]
 
-    tensor = np.full((len(df), len(AgLabels), len(Rlabels), len(days)), np.nan) # 4D
-    missing = 0
+    tensor = np.full((len(subjects), len(AgLabels), len(Rlabels), len(days)), np.nan) # 4D
 
-    for rii, recp in enumerate(Rlabels):
-        for aii, anti in enumerate(AgLabels):
-            for dii, day in enumerate(days):
-                try:
-                    dfDay = df[df["days"] == day]
-                    dfAR = dfDay[recp + "_" + anti]
-                    tensor[dfAR.index, aii, rii, dii] = dfAR.values
-                except KeyError:
-                    missing += 1
+    for i in range(len(ndf)):
+        row = ndf.iloc[i, :]
+        patient = np.where(row['patient_ID']==subjects)[0][0]
+        day = np.where(row['days']==days)[0][0]
+        for j in range(2, len(ndf.columns)):
+            key = ndf.columns[j].split('_')
+            try:
+                rii = Rlabels.index(key[0])
+                aii = AgLabels.index(key[1])
+                tensor[patient, aii, rii, day] = ndf.iloc[i, j]
+            except:
+                pass
 
     tensor = np.clip(tensor, 10.0, None)
     tensor = np.log10(tensor)

@@ -2,12 +2,12 @@
 Tensor decomposition methods
 """
 import numpy as np
-from syserol.COVID import Tensor3D
+from syserol.COVID import Tensor4D
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from statsmodels.multivariate.pca import PCA
 from copy import deepcopy
-from .COVID import Tensor3D
+from .COVID import Tensor4D
 
 
 tl.set_backend('numpy')
@@ -178,7 +178,7 @@ def initialize_cp(tensor: np.ndarray, rank: int):
 def perform_CMTF(tOrig=None, r=6):
     """ Perform CMTF decomposition. """
     if tOrig is None:
-        tOrig, _ = Tensor3D()
+        tOrig, _ = Tensor4D()
 
     tFac = initialize_cp(tOrig, r)
 
