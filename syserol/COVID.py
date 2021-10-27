@@ -19,7 +19,10 @@ def pbsSubtractOriginal():
     df["patient_ID"] = df["patient_ID"].astype('int32')
     df["group"] = pd.Categorical(df["group"], ["Negative", "Mild", "Moderate", "Severe", "Deceased"])
     df = df.sort_values(by=["group", "days", "patient_ID"])
-    return df.reset_index()
+    df = df.reset_index()
+    # Get rid of any data that doesn't have a time component (i.e. "nan" for day)
+    df = df.dropna(subset=["days"]).reset_index(drop=True)
+    return df
 
 
 def to_slice(subjects, df):
@@ -41,21 +44,28 @@ def to_slice(subjects, df):
     return tensor
 
 
-def Tensor3D():
-    """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
+def Tensor4D():
+    """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """
     df = pbsSubtractOriginal()
+    subjects = np.unique(df['patient_ID'])
     Rlabels, AgLabels = dimensionLabel3D()
+    days = np.unique(df["days"])
+    ndf = df.iloc[:, np.hstack([[1,10], np.arange(23, len(df.columns))])]
 
-    tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)
-    missing = 0
+    tensor = np.full((len(subjects), len(AgLabels), len(Rlabels), len(days)), np.nan) # 4D
 
-    for rii, recp in enumerate(Rlabels):
-        for aii, anti in enumerate(AgLabels):
+    for i in range(len(ndf)):
+        row = ndf.iloc[i, :]
+        patient = np.where(row['patient_ID']==subjects)[0][0]
+        day = np.where(row['days']==days)[0][0]
+        for j in range(2, len(ndf.columns)):
+            key = ndf.columns[j].split('_')
             try:
-                dfAR = df[recp + "_" + anti]
-                tensor[:, aii, rii] = dfAR.values
-            except KeyError:
-                missing += 1
+                rii = Rlabels.index(key[0])
+                aii = AgLabels.index(key[1])
+                tensor[patient, aii, rii, day] = ndf.iloc[i, j]
+            except:
+                pass
 
     tensor = np.clip(tensor, 10.0, None)
     tensor = np.log10(tensor)

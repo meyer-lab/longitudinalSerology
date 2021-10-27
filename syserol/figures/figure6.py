@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import sem
 import seaborn as sns
 from tensorly.decomposition import parafac
-from ..COVID import Tensor3D, dimensionLabel3D, time_components_df, COVIDpredict, pbsSubtractOriginal
+from ..COVID import Tensor4D, dimensionLabel3D, time_components_df, COVIDpredict, pbsSubtractOriginal
 from ..tensor import calcR2X, cp_normalize, reorient_factors, sort_factors
 from .common import getSetup, subplotLabel
 from scipy.optimize import curve_fit
@@ -15,7 +15,7 @@ def makeFigure():
     ax, f = getSetup((13, 9), (3, 4))
     comps = np.arange(1, 7)
 
-    tensor, _ = Tensor3D()
+    tensor, _ = Tensor4D()
 
     CMTFfacs = [parafac(tensor, cc, tol=1e-10, n_iter_max=1000,
                         linesearch=True, orthogonalise=2) for cc in comps]

@@ -3,7 +3,7 @@ Unit test file.
 """
 import numpy as np
 from ..dataImport import load_file, importLuminex, createCube
-from ..COVID import pbsSubtractOriginal, Tensor3D
+from ..COVID import pbsSubtractOriginal, TensorD4
 
 
 def test_files():
@@ -16,6 +16,6 @@ def test_files():
 def test_COVID_import():
     """ Test COVID import functions. """
     pbsSubtractOriginal()
-    tensor, _ = Tensor3D()
+    tensor, _ = Tensor4D()
 
     assert np.all(np.isfinite(tensor))
