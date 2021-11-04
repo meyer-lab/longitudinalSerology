@@ -1,3 +1,6 @@
+from .common import getSetup, subplotLabel
 
 def makeFigure():
-    return
+    ax, f = getSetup((13, 9), (3, 4))
+    comps = np.arange(1, 7)
+    return f
