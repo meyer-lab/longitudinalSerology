@@ -152,7 +152,7 @@ def initialize_cp(tensor: np.ndarray, rank: int):
         An initial cp tensor.
     """
     factors = []
-    factors.append(np.ones((226,1)))
+    factors.append(np.ones((tensor.shape[0],rank)))
     # first and last mode have to be initialized to ones, cannot be solved with PCA due to missingness structure
     for mode in range(1, tl.ndim(tensor) - 1):
         unfold = tl.unfold(tensor, mode)
@@ -174,7 +174,7 @@ def initialize_cp(tensor: np.ndarray, rank: int):
 
         factors.append(U[:, :rank])
     # append last mode factors
-    factors.append(np.ones((38,1)))
+    factors.append(np.ones((tensor.shape[3],rank)))
 
     return tl.cp_tensor.CPTensor((None, factors))
 
