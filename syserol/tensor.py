@@ -250,7 +250,7 @@ def perform_CMTF(tOrig=None, r=6):
         if ii % 2 == 0:
             R2X_last = tFac.R2X
             tFac.R2X = calcR2X(tFac, tOrig)
-            #assert tFac.R2X > 0.0
+            assert tFac.R2X > 0.0
 
         if tFac.R2X - R2X_last < 1e-6:
             break
