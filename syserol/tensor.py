@@ -147,7 +147,7 @@ def reverse_p(x: np.ndarray, y: np.ndarray, p_init: np.ndarray):
     return(res.x)
 
 
-def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
+def continue_solve(v: np.ndarray, A_hat: np.ndarray):
     """ Reverse solves for parameter matrix P_new given current guess for time factor.
     Updates current iterate of time factor (A_new) using solved parameters. 
     P_new : params x r matrix
@@ -156,14 +156,14 @@ def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
     """
     rank = A_hat.shape[1]
     A_new = np.empty(A_hat.shape)
-    P_new = np.empty(P.shape)
+    P_new = np.empty((4, rank))
 
     for comp in range(rank):
-        p_est = reverse_p(v, A_hat[:,comp], P[:, comp])
+        p_est = np.polyfit(v, A_hat[:, comp], 3)
         P_new[:, comp] = p_est
-        A_new[:, comp] = sigmoid(v, p_est)
+        A_new[:, comp] = np.polyval(p_est, v)
 
-    return P_new, A_new
+    return A_new
 
 
 def cp_normalize(tFac):
@@ -237,7 +237,6 @@ def perform_CMTF(tOrig=None, r=6):
     # get unique days into vector format for continuous solve
     days = dayLabels()
     # initialize parameter matrix
-    P = np.ones((2, r))
 
     for ii in range(2000):
         # PARAFAC on all modes
@@ -246,7 +245,7 @@ def perform_CMTF(tOrig=None, r=6):
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
         
         # for final (continuous) dimension, solve for P and recalculate continuous factor
-        P, tFac.factors[m] = continue_solve(days, tFac.factors[m], P)
+        tFac.factors[m] = continue_solve(days, tFac.factors[m])
 
         if ii % 2 == 0:
             R2X_last = tFac.R2X
