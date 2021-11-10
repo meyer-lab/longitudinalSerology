@@ -15,4 +15,4 @@ tensorly==0.7.0
 scikit-learn==1.0.1
 statsmodels==0.13.0
 pylint==2.11.1
-git+https://github.com/meyer-lab/tensorPack.git@main
+git+https://github.com/meyer-lab/tensorpack.git@main
