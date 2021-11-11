@@ -43,6 +43,11 @@ def to_slice(subjects, df):
 
     return tensor
 
+def dayLabels():
+    """ Returns day labels for 4D tensor"""
+    df = pbsSubtractOriginal()
+    days = np.unique(df["days"])
+    return days
 
 def Tensor4D():
     """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """

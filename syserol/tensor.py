@@ -2,12 +2,13 @@
 Tensor decomposition methods
 """
 import numpy as np
+import scipy as sp
 from syserol.COVID import Tensor4D
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from statsmodels.multivariate.pca import PCA
 from copy import deepcopy
-from .COVID import Tensor4D
+from .COVID import Tensor4D, dayLabels
 
 
 tl.set_backend('numpy')
@@ -127,6 +128,44 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     return X.T
 
 
+def sigmoid(x: np.ndarray, P: np.ndarray):
+    """ Basic sigmoidal function """
+    x0, k = P
+    y = 1 / (1 + np.exp(-k*(x-x0)))
+    return y
+
+
+def F(P: np.ndarray, x: np.ndarray, y: np.ndarray):
+    return(sigmoid(x, P) - y)
+
+
+def reverse_p(x: np.ndarray, y: np.ndarray, p_init: np.ndarray):
+    """ Solves for parameter matrix given an output y from our sigmoidal time function 
+    In this case, x is our time vector, y is our solution to the sigmoidal function.
+    """
+    res = sp.optimize.least_squares(F, p_init, args=(x, y))
+    return(res.x)
+
+
+def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
+    """ Reverse solves for parameter matrix P_new given current guess for time factor.
+    Updates current iterate of time factor (A_new) using solved parameters. 
+    P_new : params x r matrix
+    A_new : r x n matrix 
+    Note that the first iteration initializes P to be all ones.
+    """
+    rank = A_hat.shape[1]
+    A_new = np.empty(A_hat.shape)
+    P_new = np.empty(P.shape)
+
+    for comp in range(rank):
+        p_est = reverse_p(v, A_hat[:,comp], P[:, comp])
+        P_new[:, comp] = p_est
+        A_new[:, comp] = sigmoid(v, p_est)
+
+    return P_new, A_new
+
+
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
     for i, factor in enumerate(tFac.factors):
@@ -152,7 +191,9 @@ def initialize_cp(tensor: np.ndarray, rank: int):
         An initial cp tensor.
     """
     factors = []
-    for mode in range(tl.ndim(tensor)):
+    factors.append(np.ones((tensor.shape[0],rank)))
+    # first and last mode have to be initialized to ones, cannot be solved with PCA due to missingness structure
+    for mode in range(1, tl.ndim(tensor) - 1):
         unfold = tl.unfold(tensor, mode)
 
         # Remove completely missing columns
@@ -171,6 +212,8 @@ def initialize_cp(tensor: np.ndarray, rank: int):
             U = tl.concatenate([U, pad_part], axis=1)
 
         factors.append(U[:, :rank])
+    # append last mode factors
+    factors.append(np.ones((tensor.shape[3],rank)))
 
     return tl.cp_tensor.CPTensor((None, factors))
 
@@ -191,12 +234,20 @@ def perform_CMTF(tOrig=None, r=6):
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
+    # get unique days into vector format for continuous solve
+    days = dayLabels()
+    # initialize parameter matrix
+    P = np.ones((2, r))
+
     for ii in range(2000):
         # PARAFAC on all modes
         for m in range(0, len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
         
+        # for final (continuous) dimension, solve for P and recalculate continuous factor
+        P, tFac.factors[m] = continue_solve(days, tFac.factors[m], P)
+
         if ii % 2 == 0:
             R2X_last = tFac.R2X
             tFac.R2X = calcR2X(tFac, tOrig)
