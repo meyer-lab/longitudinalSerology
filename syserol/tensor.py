@@ -144,7 +144,7 @@ def reverse_p(x: np.ndarray, y: np.ndarray, p_init: np.ndarray):
     In this case, x is our time vector, y is our solution to the sigmoidal function.
     """
     res = sp.optimize.least_squares(F, p_init, args=(x, y))
-    return(res.x)
+    return res.x
 
 
 def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
@@ -164,6 +164,39 @@ def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
         A_new[:, comp] = sigmoid(v, p_est)
 
     return P_new, A_new
+
+
+def build_factor(tFac_shape, P_shape, v, P):
+    """ Builds our continous dimension factor given a parameter matrix P"""
+    rank = P_shape[1]
+    factor = np.empty((tFac_shape))
+    for comp in range(rank):
+        factor[:, comp] = sigmoid(v, P[:, comp])
+    return factor
+
+
+def continue_R2X(p_init, v, tFac, tOrig, P_shape):
+    """ Calculates R2X with current guess for tFac,
+    which uses our current parameter to solve for continuous factor.
+    Returns a negative R2X for minimization. """
+    P_guess = np.reshape(p_init, P_shape)
+    tFac.factors[3] = build_factor(tFac.factors[3].shape, P_shape, v, P_guess)
+    return -calcR2X(tFac, tOrig)
+
+
+def continuous_maximize_R2X(tFac, tOrig, v, P):
+    """ Maximizes R2X of tFac with respect to parameter matrix P,
+    which will be used to calculate our continuous factor.
+    Thus, solves for continous factor while maximizing R2X. 
+    Returns current guesses for:
+    Parameter matrix P_updt: params x r matrix
+    Continous factor: r x n matrix 
+    """
+    P_shape = P.shape
+    p_init = np.reshape(P, -1)
+    res = sp.optimize.minimize(continue_R2X, p_init, args=(v, tFac, tOrig, P_shape))
+    P_updt = np.reshape(res.x, P_shape)
+    return P_updt, build_factor(tFac.factors[3].shape, P_shape, v,  P_updt)
 
 
 def cp_normalize(tFac):
@@ -240,13 +273,17 @@ def perform_CMTF(tOrig=None, r=6):
     P = np.ones((2, r))
 
     for ii in range(2000):
+        print(ii)
         # PARAFAC on all modes
-        for m in range(0, len(tFac.factors)):
+        for m in range(0, len(tFac.factors) - 1):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
         
-        # for final (continuous) dimension, solve for P and recalculate continuous factor
-        P, tFac.factors[m] = continue_solve(days, tFac.factors[m], P)
+        # Solve for continuous dimension and P by backwards solve
+        # P, tFac.factors[m] = continue_solve(days, tFac.factors[m], P)
+
+        # Solve for P and continuous factor by maximizing R2X
+        P, tFac.factors[3] = continuous_maximize_R2X(tFac, tOrig, days, P)
 
         if ii % 2 == 0:
             R2X_last = tFac.R2X
