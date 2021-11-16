@@ -14,21 +14,14 @@ from .COVID import Tensor4D, dayLabels
 tl.set_backend('numpy')
 
 
-def buildGlycan(tFac):
-    """ Build the glycan matrix from the factors. """
-    return tFac.factors[0] @ tFac.mFactor.T
-
-
-def calcR2X(tFac, tIn=None):
+def calcR2X(tFac, tIn):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
-    assert (tIn is not None)
-
     vTop, vBottom = 0.0, 0.0
 
-    if tIn is not None:
-        tMask = np.isfinite(tIn)
-        vTop += np.sum(np.square(tl.cp_to_tensor(tFac) * tMask - np.nan_to_num(tIn)))
-        vBottom += np.sum(np.square(np.nan_to_num(tIn)))
+    tMask = np.isfinite(tIn)
+    tFill = np.nan_to_num(tIn)
+    vTop += np.sum(np.square(tl.cp_to_tensor(tFac) * tMask - tFill))
+    vBottom += np.sum(np.square(tFill))
 
     return 1.0 - vTop / vBottom
 
@@ -36,9 +29,6 @@ def calcR2X(tFac, tIn=None):
 def tensor_degFreedom(tFac) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """
     deg = np.sum([f.size for f in tFac.factors])
-
-    if hasattr(tFac, 'mFactor'):
-        deg += tFac.mFactor.size
 
     return deg
 
@@ -52,17 +42,12 @@ def reorient_factors(tFac):
     tFac.factors[1] *= rMeans[np.newaxis, :]
     tFac.factors[2] *= agMeans[np.newaxis, :]
 
-    if hasattr(tFac, 'mFactor'):
-        tFac.mFactor *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
-
     return tFac
 
 
 def totalVar(tFac):
     """ Total variance of a factorization on reconstruction. """
     varr = tl.cp_norm(tFac)
-    if hasattr(tFac, 'mFactor'):
-        varr += tl.cp_norm((None, [tFac.factors[0], tFac.mFactor]))
     return varr
 
 
@@ -76,10 +61,6 @@ def sort_factors(tFac):
     tensor.weights = tensor.weights[order]
     tensor.factors = [fac[:, order] for fac in tensor.factors]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
-
-    if hasattr(tFac, 'mFactor'):
-        tensor.mFactor = tensor.mFactor[:, order]
-        np.testing.assert_allclose(buildGlycan(tFac), buildGlycan(tensor))
 
     return tensor
 
@@ -135,35 +116,35 @@ def sigmoid(x: np.ndarray, P: np.ndarray):
     return y
 
 
-def F(P: np.ndarray, x: np.ndarray, y: np.ndarray):
-    return(sigmoid(x, P) - y)
+def build_factor(v, P):
+    """ Builds our continous dimension factor given a parameter matrix P"""
+    factor = np.empty((v.size, P.shape[1]), dtype=P.dtype)
+    for comp in range(P.shape[1]):
+        factor[:, comp] = sigmoid(v, P[:, comp])
+
+    return factor
 
 
-def reverse_p(x: np.ndarray, y: np.ndarray, p_init: np.ndarray):
-    """ Solves for parameter matrix given an output y from our sigmoidal time function 
-    In this case, x is our time vector, y is our solution to the sigmoidal function.
+def continue_R2X(p_init, v, tFac, tOrig):
+    """ Calculates R2X with current guess for tFac,
+    which uses our current parameter to solve for continuous factor.
+    Returns a negative R2X for minimization. """
+    P_guess = np.reshape(p_init, (-1, tFac.rank))
+    tFac.factors[3] = build_factor(v, P_guess)
+    return -calcR2X(tFac, tOrig)
+
+
+def continuous_maximize_R2X(tFac, tOrig, v, P):
+    """ Maximizes R2X of tFac with respect to parameter matrix P,
+    which will be used to calculate our continuous factor.
+    Thus, solves for continous factor while maximizing R2X. 
+    Returns current guesses for:
+    Parameter matrix P_updt: params x r matrix
+    Continous factor: r x n matrix 
     """
-    res = sp.optimize.least_squares(F, p_init, args=(x, y))
-    return(res.x)
-
-
-def continue_solve(v: np.ndarray, A_hat: np.ndarray, P: np.ndarray):
-    """ Reverse solves for parameter matrix P_new given current guess for time factor.
-    Updates current iterate of time factor (A_new) using solved parameters. 
-    P_new : params x r matrix
-    A_new : r x n matrix 
-    Note that the first iteration initializes P to be all ones.
-    """
-    rank = A_hat.shape[1]
-    A_new = np.empty(A_hat.shape)
-    P_new = np.empty(P.shape)
-
-    for comp in range(rank):
-        p_est = reverse_p(v, A_hat[:,comp], P[:, comp])
-        P_new[:, comp] = p_est
-        A_new[:, comp] = sigmoid(v, p_est)
-
-    return P_new, A_new
+    res = sp.optimize.minimize(continue_R2X, P.flatten(), jac="cs", args=(v, tFac, tOrig), options={"disp": True})
+    P_updt = np.reshape(res.x, (-1, tFac.rank))
+    return P_updt, build_factor(v, P_updt)
 
 
 def cp_normalize(tFac):
@@ -239,21 +220,22 @@ def perform_CMTF(tOrig=None, r=6):
     # initialize parameter matrix
     P = np.ones((2, r))
 
-    for ii in range(2000):
+    for ii in range(200):
+        print(ii)
         # PARAFAC on all modes
-        for m in range(0, len(tFac.factors)):
+        for m in range(0, len(tFac.factors) - 1):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
-        
-        # for final (continuous) dimension, solve for P and recalculate continuous factor
-        P, tFac.factors[m] = continue_solve(days, tFac.factors[m], P)
 
-        if ii % 2 == 0:
-            R2X_last = tFac.R2X
-            tFac.R2X = calcR2X(tFac, tOrig)
-            assert tFac.R2X > 0.0
+        # Solve for P and continuous factor by maximizing R2X
+        P, tFac.factors[3] = continuous_maximize_R2X(tFac, tOrig, days, P)
 
-        if tFac.R2X - R2X_last < 1e-6:
+        R2X_last = tFac.R2X
+        tFac.R2X = calcR2X(tFac, tOrig)
+        assert tFac.R2X > 0.0
+        print(tFac.R2X)
+
+        if tFac.R2X - R2X_last < 1e-4:
             break
 
     tFac = cp_normalize(tFac)
