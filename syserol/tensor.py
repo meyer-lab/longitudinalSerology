@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from syserol.COVID import Tensor4D
 import tensorly as tl
+from tqdm import tqdm
 from tensorly.tenalg import khatri_rao
 from statsmodels.multivariate.pca import PCA
 from copy import deepcopy
@@ -77,9 +78,6 @@ def delete_component(tFac, compNum):
     tensor.rank -= compNum.size
     tensor.weights = np.delete(tensor.weights, compNum)
 
-    if hasattr(tFac, 'mFactor'):
-        tensor.mFactor = np.delete(tensor.mFactor, compNum, axis=1)
-
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     return tensor
 
@@ -142,7 +140,7 @@ def continuous_maximize_R2X(tFac, tOrig, v, P):
     Parameter matrix P_updt: params x r matrix
     Continous factor: r x n matrix 
     """
-    res = sp.optimize.minimize(continue_R2X, P.flatten(), jac="cs", args=(v, tFac, tOrig), options={"disp": True})
+    res = sp.optimize.minimize(continue_R2X, P.flatten(), jac="cs", args=(v, tFac, tOrig))
     P_updt = np.reshape(res.x, (-1, tFac.rank))
     return P_updt, build_factor(v, P_updt)
 
@@ -152,9 +150,6 @@ def cp_normalize(tFac):
     for i, factor in enumerate(tFac.factors):
         scales = np.linalg.norm(factor, ord=np.inf, axis=0)
         tFac.weights *= scales
-        if i == 0 and hasattr(tFac, 'mFactor'):
-            tFac.mFactor *= scales
-
         tFac.factors[i] /= scales
 
     return tFac
@@ -186,11 +181,8 @@ def initialize_cp(tensor: np.ndarray, rank: int):
         unfold[np.isnan(unfold)] = recon_pca[np.isnan(unfold)]
 
         U = np.linalg.svd(unfold)[0]
-
-        if U.shape[1] < rank:
-            # This is a hack but it seems to do the job for now
-            pad_part = np.random.rand(U.shape[0], rank - U.shape[1])
-            U = tl.concatenate([U, pad_part], axis=1)
+        # If this fails we should take another initialization approach
+        assert U.shape[1] >= rank
 
         factors.append(U[:, :rank])
     # append last mode factors
@@ -220,8 +212,8 @@ def perform_CMTF(tOrig=None, r=6):
     # initialize parameter matrix
     P = np.ones((2, r))
 
-    for ii in range(200):
-        print(ii)
+    tq = tqdm(range(200))
+    for _ in tq:
         # PARAFAC on all modes
         for m in range(0, len(tFac.factors) - 1):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
@@ -233,7 +225,7 @@ def perform_CMTF(tOrig=None, r=6):
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         assert tFac.R2X > 0.0
-        print(tFac.R2X)
+        tq.set_postfix(R2X=tFac.R2X, refresh=False)
 
         if tFac.R2X - R2X_last < 1e-4:
             break
