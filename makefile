@@ -18,14 +18,14 @@ output/manuscript.md: manuscript/*.md
 	git remote rm rootstock
 
 output/manuscript.html: output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
-	poetry run pandoc --verbose \
+	pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
 		--defaults=./common/templates/manubot/pandoc/html.yaml \
 		--csl=./manuscript/molecular-systems-biology.csl \
 		output/manuscript.md
 
 output/manuscript.docx: output/manuscript.md $(patsubst %, output/figure%.svg, $(flist))
-	poetry run pandoc --verbose \
+	pandoc --verbose \
 		--defaults=./common/templates/manubot/pandoc/common.yaml \
 		--defaults=./common/templates/manubot/pandoc/docx.yaml \
 		--csl=./manuscript/molecular-systems-biology.csl \
