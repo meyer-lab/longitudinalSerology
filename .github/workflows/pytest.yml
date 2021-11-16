@@ -8,18 +8,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Cache references
-      uses: actions/cache@v2
-      with:
-        path: ~/cache
-        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-    - name: Install dependencies
-      run: |
-        git submodule update --init --recursive
-        make venv
     - name: Test with pytest
-      run: |
-        . venv/bin/activate && pytest --cov=syserol --cov-report=xml --cov-config=.github/workflows/coveragerc
+      run: make testcover
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:

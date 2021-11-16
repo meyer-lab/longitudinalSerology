@@ -16,6 +16,9 @@ output/figure%.svg: venv genFigure.py syserol/figures/figure%.py
 test: venv
 	. venv/bin/activate && pytest -s -v -x
 
+testcover: venv
+	. venv/bin/activate && pytest --cov=syserol --cov-report=xml --cov-config=.github/workflows/coveragerc
+
 output/manuscript.md: venv manuscript/*.md
 	. venv/bin/activate && manubot process --content-directory=manuscript --output-directory=output --cache-directory=cache --skip-citations --log-level=INFO
 	cp -r manuscript/images output/
