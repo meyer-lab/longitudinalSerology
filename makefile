@@ -2,7 +2,7 @@ flist = 1
 
 all: $(patsubst %, output/figure%.svg, $(flist))
 
-output/figure%.svg: genFigure.py syserol/figures/figure%.py
+output/figure%.svg: syserol/figures/figure%.py
 	mkdir -p output
 	poetry run fbuild $*
 
