@@ -136,8 +136,7 @@ def continue_R2X(p_init, v, tFac, tFill, tMask):
     grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
     grad = grad.factors[3].flatten()
     J = approx_derivative(lambda x: build_factor(v, x, tFac.rank).flatten(), p_init, method="cs")
-    outt = grad @ J # Apply chain rule
-    return sse, outt
+    return sse, grad @ J # Apply chain rule
 
 
 def continuous_maximize_R2X(tFac, tOrig, v, P):
@@ -229,7 +228,6 @@ def perform_CMTF(tOrig=None, r=6):
     P = np.ones((2, r))
 
     for ii in range(200):
-        print(ii)
         # PARAFAC on all modes
         for m in range(0, len(tFac.factors) - 1):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
@@ -241,9 +239,8 @@ def perform_CMTF(tOrig=None, r=6):
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         assert tFac.R2X > 0.0
-        print(tFac.R2X)
 
-        if tFac.R2X - R2X_last < 1e-4:
+        if tFac.R2X - R2X_last < 1e-5:
             break
 
     tFac = cp_normalize(tFac)
