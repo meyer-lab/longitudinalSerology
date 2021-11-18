@@ -14,13 +14,10 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
         installer-parallel: true
-    - name: Cache references
-      uses: actions/cache@v2
-      with:
-        path: ~/cache
-        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Install submodule
       run: git submodule update --init --recursive
+    - name: Install dependencies
+      run: poetry install --no-root
     - name: Build figures
       run: make all -j 3
     - name: Upload files
