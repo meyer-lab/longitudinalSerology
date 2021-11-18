@@ -2,9 +2,11 @@
 Tensor decomposition methods
 """
 import numpy as np
-import scipy as sp
+from scipy.optimize import minimize
 from syserol.COVID import Tensor4D
 import tensorly as tl
+from scipy.optimize._numdiff import approx_derivative
+from tensorly.cp_tensor import cp_lstsq_grad
 from tensorly.tenalg import khatri_rao
 from statsmodels.multivariate.pca import PCA
 from copy import deepcopy
@@ -116,8 +118,9 @@ def sigmoid(x: np.ndarray, P: np.ndarray):
     return y
 
 
-def build_factor(v, P):
+def build_factor(v, P, rank):
     """ Builds our continous dimension factor given a parameter matrix P"""
+    P = np.reshape(P, (-1, rank))
     factor = np.empty((v.size, P.shape[1]), dtype=P.dtype)
     for comp in range(P.shape[1]):
         factor[:, comp] = sigmoid(v, P[:, comp])
@@ -125,13 +128,16 @@ def build_factor(v, P):
     return factor
 
 
-def continue_R2X(p_init, v, tFac, tOrig):
+def continue_R2X(p_init, v, tFac, tFill, tMask):
     """ Calculates R2X with current guess for tFac,
     which uses our current parameter to solve for continuous factor.
     Returns a negative R2X for minimization. """
-    P_guess = np.reshape(p_init, (-1, tFac.rank))
-    tFac.factors[3] = build_factor(v, P_guess)
-    return -calcR2X(tFac, tOrig)
+    tFac.factors[3] = build_factor(v, p_init, tFac.rank)
+    grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
+    grad = grad.factors[3].flatten()
+    J = approx_derivative(lambda x: build_factor(v, x, tFac.rank).flatten(), p_init, method="cs")
+    outt = grad @ J # Apply chain rule
+    return sse, outt
 
 
 def continuous_maximize_R2X(tFac, tOrig, v, P):
@@ -142,9 +148,11 @@ def continuous_maximize_R2X(tFac, tOrig, v, P):
     Parameter matrix P_updt: params x r matrix
     Continous factor: r x n matrix 
     """
-    res = sp.optimize.minimize(continue_R2X, P.flatten(), jac="cs", args=(v, tFac, tOrig), options={"disp": True})
+    tMask = np.isfinite(tOrig)
+    tFill = np.nan_to_num(tOrig)
+    res = minimize(continue_R2X, P.flatten(), jac=True, args=(v, tFac, tFill, tMask))
     P_updt = np.reshape(res.x, (-1, tFac.rank))
-    return P_updt, build_factor(v, P_updt)
+    return P_updt, build_factor(v, P_updt, tFac.rank)
 
 
 def cp_normalize(tFac):
