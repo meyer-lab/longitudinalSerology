@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 import scipy as sp
-from syserol.COVID import Tensor4D
+from .COVID import Tensor4D
 import tensorly as tl
 from tqdm import tqdm
 from tensorly.tenalg import khatri_rao

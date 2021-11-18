@@ -141,5 +141,4 @@ cython_debug/
 .idea/
 
 .vscode/settings.json
-
-manuscript/images/thumbnail.svg
+output

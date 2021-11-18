@@ -1,11 +1,19 @@
 """
 This file contains functions that are used in multiple figures.
 """
+import sys
+import logging
+import time
+import matplotlib
 import seaborn as sns
 from string import ascii_lowercase
 import matplotlib
 from matplotlib import gridspec, pyplot as plt
 import svgutils.transform as st
+
+
+matplotlib.use("AGG")
+fdir = "./output/"
 
 
 matplotlib.rcParams["legend.labelspacing"] = 0.2
@@ -67,3 +75,22 @@ def overlayCartoon(figFile, cartoonFile, x, y, scalee=1, scale_x=1, scale_y=1):
 
     template.append(cartoon)
     template.save(figFile)
+
+
+def genFigure():
+    """ Build a figure. """
+    logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+    nameOut = "figure" + sys.argv[1]
+
+    start = time.time()
+
+    exec("from ." + nameOut + " import makeFigure", globals())
+    ff = makeFigure()
+    ff.savefig(fdir + nameOut + ".svg", dpi=ff.dpi, bbox_inches="tight", pad_inches=0)
+
+    if sys.argv[1] == '6':
+        # Overlay Figure 6a cartoon
+        overlayCartoon('./output/figure6.svg', './manuscript/images/figure6a.svg',
+                       50, 10, scalee=0.4, scale_x=0.5, scale_y=0.5)
+
+    logging.info("%s is done after %s seconds.", nameOut, time.time() - start)

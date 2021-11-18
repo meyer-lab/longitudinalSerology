@@ -4,7 +4,7 @@ all: $(patsubst %, output/figure%.svg, $(flist))
 
 output/figure%.svg: genFigure.py syserol/figures/figure%.py
 	mkdir -p output
-	poetry run genFigure.py $*
+	poetry run fbuild $*
 
 test:
 	poetry run pytest -s -v -x
