@@ -8,29 +8,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Cache references
-      uses: actions/cache@v2
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
       with:
-        path: ~/cache
-        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+    - name: Install submodule
+      run: git submodule update --init --recursive
     - name: Install dependencies
-      run: |
-        git submodule update --init --recursive
-        make venv
+      run: poetry install --no-root
     - name: Build figures
       run: make all -j 3
     - name: Upload files
       uses: actions/upload-artifact@v2
       with:
         name: files
-        path: |
-          output/*.svg
-          output/*.docx
-    - name: Deploy 🚀
-      uses: JamesIves/github-pages-deploy-action@3.6.2
-      if: github.ref == 'refs/heads/master'
-      with:
-        ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages # The branch the action should deploy to.
-        FOLDER: output # The folder the action should deploy.
-        SINGLE_COMMIT: true
+        path: output/*.svg
