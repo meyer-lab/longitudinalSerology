@@ -109,10 +109,14 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
     return X.T
 
 
-def sigmoid(x: np.ndarray, P: np.ndarray):
-    """ Basic sigmoidal function """
-    x0, k = P
-    y = 1 / (1 + np.exp(-k*(x-x0)))
+def curve(x: np.ndarray, P: np.ndarray):
+    """ Function
+    y(t) = d + (a − d)/(1 + (t/c)b) 
+    Based on Zohar et al. curve
+    P will be a 4 element array now.
+    """
+    a, b, c, d = P
+    y = d + ((a - d) / (1 + (x/c)*b))
     return y
 
 
@@ -121,7 +125,7 @@ def build_factor(v, P, rank):
     P = np.reshape(P, (-1, rank))
     factor = np.empty((v.size, P.shape[1]), dtype=P.dtype)
     for comp in range(P.shape[1]):
-        factor[:, comp] = sigmoid(v, P[:, comp])
+        factor[:, comp] = curve(v, P[:, comp])
 
     return factor
 
@@ -217,7 +221,8 @@ def perform_CMTF(tOrig=None, r=6):
     # get unique days into vector format for continuous solve
     days = dayLabels()
     # initialize parameter matrix
-    P = np.ones((2, r))
+    # with Zohar curve, P has 4 parameters
+    P = np.ones((4, r))
 
     tq = tqdm(range(200))
     for _ in tq:
