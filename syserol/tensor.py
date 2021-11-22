@@ -120,12 +120,12 @@ def curve(x: np.ndarray, P: np.ndarray):
     return y
 
 
-def build_factor(v, P, rank):
+def build_cFactor(tFac, P):
     """ Builds our continous dimension factor given a parameter matrix P"""
-    P = np.reshape(P, (-1, rank))
-    factor = np.empty((v.size, P.shape[1]), dtype=P.dtype)
+    P = np.reshape(P, (-1, tFac.rank))
+    factor = np.empty((tFac.time.size, P.shape[1]), dtype=P.dtype)
     for comp in range(P.shape[1]):
-        factor[:, comp] = curve(v, P[:, comp])
+        factor[:, comp] = curve(tFac.time, P[:, comp])
 
     return factor
 
@@ -134,14 +134,14 @@ def continue_R2X(p_init, v, tFac, tFill, tMask):
     """ Calculates R2X with current guess for tFac,
     which uses our current parameter to solve for continuous factor.
     Returns a negative R2X for minimization. """
-    tFac.factors[3] = build_factor(v, p_init, tFac.rank)
+    tFac.factors[3] = build_cFactor(v, p_init, tFac.rank)
     grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
     grad = grad.factors[3].flatten()
-    J = approx_derivative(lambda x: build_factor(v, x, tFac.rank).flatten(), p_init, method="cs")
+    J = approx_derivative(lambda x: build_cFactor(v, x, tFac.rank).flatten(), p_init, method="cs")
     return sse, grad @ J # Apply chain rule
 
 
-def continuous_maximize_R2X(tFac, tOrig, v, P):
+def continuous_maximize_R2X(tFac, tOrig):
     """ Maximizes R2X of tFac with respect to parameter matrix P,
     which will be used to calculate our continuous factor.
     Thus, solves for continous factor while maximizing R2X. 
@@ -151,9 +151,9 @@ def continuous_maximize_R2X(tFac, tOrig, v, P):
     """
     tMask = np.isfinite(tOrig)
     tFill = np.nan_to_num(tOrig)
-    res = minimize(continue_R2X, P.flatten(), jac=True, args=(v, tFac, tFill, tMask))
+    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, args=(tFac.time, tFac, tFill, tMask))
     P_updt = np.reshape(res.x, (-1, tFac.rank))
-    return P_updt, build_factor(v, P_updt, tFac.rank)
+    return P_updt, build_cFactor(tFac, P_updt)
 
 
 def cp_normalize(tFac):
@@ -219,10 +219,10 @@ def perform_CMTF(tOrig=None, r=6):
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     # get unique days into vector format for continuous solve
-    days = dayLabels()
+    tFac.time = dayLabels()
     # initialize parameter matrix
     # with Zohar curve, P has 4 parameters
-    P = np.ones((4, r))
+    tFac.cFactor = np.ones((4, r))
 
     tq = tqdm(range(200))
     for _ in tq:
@@ -232,7 +232,7 @@ def perform_CMTF(tOrig=None, r=6):
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
 
         # Solve for P and continuous factor by maximizing R2X
-        P, tFac.factors[3] = continuous_maximize_R2X(tFac, tOrig, days, P)
+        tFac.cFactor, tFac.factors[3] = continuous_maximize_R2X(tFac, tOrig)
 
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
