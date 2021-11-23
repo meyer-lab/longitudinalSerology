@@ -234,15 +234,13 @@ def perform_CMTF(tOrig=None, r=6):
         assert tFac.R2X > 0.0
         tq.set_postfix(R2X=tFac.R2X, refresh=False)
 
-        if tFac.R2X - R2X_last < 1e-5:
+        if tFac.R2X - R2X_last < 1e-6:
             break
 
-    tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
+    # tFac = cp_normalize(tFac)
+    # tFac = reorient_factors(tFac)
 
-    if r > 1:
-        tFac = sort_factors(tFac)
-
-    print(tFac.R2X)
+    # if r > 1:
+    #     tFac = sort_factors(tFac)
 
     return tFac
