@@ -19,6 +19,7 @@ def test_R2X():
         assert np.all(np.isfinite(facT.factors[1]))
         assert np.all(np.isfinite(facT.factors[2]))
         arr.append(facT.R2X)
+    print("R2X:", facT.R2X)
     for j in range(len(arr) - 1):
         assert arr[j] < arr[j + 1]
     # confirm R2X is >= 0 and <=1
