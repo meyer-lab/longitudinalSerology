@@ -31,7 +31,7 @@ def calcR2X(tFac, tIn):
 
 def tensor_degFreedom(tFac) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """
-    deg = np.sum([f.size for f in tFac.factors])
+    deg = np.sum([f.size for f in tFac.factors[0:3]]) + tFac.cFactor.size
 
     return deg
 
@@ -130,14 +130,14 @@ def build_cFactor(tFac, P):
     return factor
 
 
-def continue_R2X(p_init, v, tFac, tFill, tMask):
+def continue_R2X(p_init, tFac, tFill, tMask):
     """ Calculates R2X with current guess for tFac,
     which uses our current parameter to solve for continuous factor.
     Returns a negative R2X for minimization. """
-    tFac.factors[3] = build_cFactor(v, p_init, tFac.rank)
+    tFac.factors[3] = build_cFactor(tFac, p_init)
     grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
     grad = grad.factors[3].flatten()
-    J = approx_derivative(lambda x: build_cFactor(v, x, tFac.rank).flatten(), p_init, method="cs")
+    J = approx_derivative(lambda x: build_cFactor(tFac, x).flatten(), p_init, method="cs")
     return sse, grad @ J # Apply chain rule
 
 
@@ -151,7 +151,7 @@ def continuous_maximize_R2X(tFac, tOrig):
     """
     tMask = np.isfinite(tOrig)
     tFill = np.nan_to_num(tOrig)
-    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, args=(tFac.time, tFac, tFill, tMask))
+    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, args=(tFac, tFill, tMask))
     P_updt = np.reshape(res.x, (-1, tFac.rank))
     return P_updt, build_cFactor(tFac, P_updt)
 
