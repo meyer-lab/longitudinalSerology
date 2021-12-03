@@ -13,12 +13,13 @@ from ..tensor import perform_CMTF, delete_component, calcR2X, sort_factors
 def test_R2X():
     """ Test to ensure R2X for higher components is larger. """
     arr = []
-    for i in range(1, 5):
+    for i in range(1, 7):
         facT = perform_CMTF(r=i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))
         assert np.all(np.isfinite(facT.factors[2]))
         arr.append(facT.R2X)
+    print("R2X:", facT.R2X)
     for j in range(len(arr) - 1):
         assert arr[j] < arr[j + 1]
     # confirm R2X is >= 0 and <=1
