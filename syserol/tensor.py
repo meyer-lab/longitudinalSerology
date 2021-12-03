@@ -9,7 +9,7 @@ import tensorly as tl
 from scipy.optimize._numdiff import approx_derivative
 from tensorly.cp_tensor import cp_lstsq_grad
 from tensorly.tenalg import khatri_rao
-from statsmodels.multivariate.pca import PCA
+from tensorpack import initialize_cp
 from copy import deepcopy
 from .COVID import Tensor4D, dayLabels
 
@@ -166,42 +166,6 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_cp(tensor: np.ndarray, rank: int):
-    r"""Initialize factors used in `parafac`.
-    Parameters
-    ----------
-    tensor : ndarray
-    rank : int
-    Returns
-    -------
-    factors : CPTensor
-        An initial cp tensor.
-    """
-    factors = []
-    factors.append(np.ones((tensor.shape[0],rank)))
-    # first and last mode have to be initialized to ones, cannot be solved with PCA due to missingness structure
-    for mode in range(1, tl.ndim(tensor) - 1):
-        unfold = tl.unfold(tensor, mode)
-
-        # Remove completely missing columns
-        unfold = unfold[:, np.sum(np.isfinite(unfold), axis=0) > 2]
-
-        # Impute by PCA
-        outt = PCA(unfold, ncomp=1, method="nipals", missing="fill-em", standardize=False, demean=False, normalize=False, max_em_iter=1000)
-        recon_pca = outt.scores @ outt.loadings.T
-        unfold[np.isnan(unfold)] = recon_pca[np.isnan(unfold)]
-
-        U = np.linalg.svd(unfold)[0]
-        # If this fails we should take another initialization approach
-        assert U.shape[1] >= rank
-
-        factors.append(U[:, :rank])
-    # append last mode factors
-    factors.append(np.ones((tensor.shape[3],rank)))
-
-    return tl.cp_tensor.CPTensor((None, factors))
-
-
 def perform_CMTF(tOrig=None, r=6):
     """ Perform CMTF decomposition. """
     if tOrig is None:
@@ -239,15 +203,13 @@ def perform_CMTF(tOrig=None, r=6):
         assert tFac.R2X > 0.0
         tq.set_postfix(R2X=tFac.R2X, refresh=False)
 
-        if tFac.R2X - R2X_last < 1e-5:
+        if tFac.R2X - R2X_last < 1e-6:
             break
 
-    tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
+    # tFac = cp_normalize(tFac)
+    # tFac = reorient_factors(tFac)
 
-    if r > 1:
-        tFac = sort_factors(tFac)
-
-    print(tFac.R2X)
+    # if r > 1:
+    #     tFac = sort_factors(tFac)
 
     return tFac
