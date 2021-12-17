@@ -11,7 +11,7 @@ from itertools import groupby
 def makeFigure():
     ax, f = getSetup((13, 9), (1, 4))
 
-    comps = np.arange(1,3)
+    comps = np.arange(1,6)
     tensor, _ = Tensor4D()
     CMTFfacs = [perform_CMTF(tensor, cc) for cc in comps]
 
@@ -22,7 +22,7 @@ def makeFigure():
 
     Rlabels, agLabels = dimensionLabel3D()
     days = dayLabels()
-    tfac = CMTFfacs[1]
+    tfac = CMTFfacs[-1]
 
     df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
@@ -30,7 +30,7 @@ def makeFigure():
               list(df.loc[np.unique(df['patient_ID'])]['group']), "Subjects", ax[0], True)
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[1])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[2])
-    comp_plot(tfac.factors[3], components, days, "Time (days)", ax[3])
+    comp_plot(tfac.factors[3], components, days.astype(int), "Time (days)", ax[3])
     
     subplotLabel(ax)
     return f
@@ -47,10 +47,10 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
 
         newLabels = [item for sublist in newLabels for item in sublist]
 
-        sns.heatmap(factors, cmap="PiYG", center=0,
+        sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=newLabels, ax=ax)
     else:
-        sns.heatmap(factors, cmap="PiYG", center=0,
+        sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=ylabel, ax=ax)
     ax.set_xlabel("Components")
     ax.set_title(plotLabel)
