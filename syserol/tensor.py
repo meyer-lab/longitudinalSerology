@@ -116,7 +116,7 @@ def curve(x: np.ndarray, P: np.ndarray):
     P will be a 4 element array now.
     """
     a, b, c, d = P
-    y = d + ((a - d) / (1 + (x/c)*b))
+    y = d + ((a - d) / (1 + (x/c)**b))
     return y
 
 
