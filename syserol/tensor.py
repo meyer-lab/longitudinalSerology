@@ -165,12 +165,13 @@ def cp_normalize(tFac):
 
     return tFac
 
+
 def check_unimodality(arr):
-    i = 1
-    n = len(arr)
-    while (i < n and arr[i] <= arr[i-1]):
-        i += 1
-    return(i == n)
+    arrDiff = np.diff(arr, axis=0)
+    diffMin = np.min(arrDiff, axis=0)
+    diffMax = np.max(arrDiff, axis=0)
+    assert np.all(diffMin * diffMax >= 0.0)
+
 
 def perform_CMTF(tOrig=None, r=6):
     """ Perform CMTF decomposition. """
@@ -205,8 +206,7 @@ def perform_CMTF(tOrig=None, r=6):
         tFac.cFactor, tFac.factors[3] = continuous_maximize_R2X(tFac, tOrig)
 
         # assert that every continuous factor is unimodal (increases or decreases in one direction)
-        for ii in range(tFac.rank):
-            assert check_unimodality(tFac.factors[3][:,ii]) or check_unimodality(np.flip(tFac.factors[3][:,ii]))
+        check_unimodality(tFac.factors[3])
 
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
