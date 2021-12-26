@@ -3,7 +3,7 @@ Tensor decomposition methods
 """
 import numpy as np
 from tqdm import tqdm
-from scipy.optimize import minimize
+from scipy.optimize import minimize, Bounds
 from syserol.COVID import Tensor4D
 import tensorly as tl
 from scipy.optimize._numdiff import approx_derivative
@@ -116,7 +116,8 @@ def curve(x: np.ndarray, P: np.ndarray):
     P will be a 4 element array now.
     """
     a, b, c, d = P
-    y = d + ((a - d) / (1 + (x/c)**b))
+    y = d + ((a - d) / (1.0 + np.power(x / c, b)))
+    assert np.all(np.isfinite(y))
     return y
 
 
@@ -137,7 +138,7 @@ def continue_R2X(p_init, tFac, tFill, tMask):
     tFac.factors[3] = build_cFactor(tFac, p_init)
     grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
     grad = grad.factors[3].flatten()
-    J = approx_derivative(lambda x: build_cFactor(tFac, x).flatten(), p_init, method="cs")
+    J = approx_derivative(lambda x: build_cFactor(tFac, x).flatten(), p_init, method="3-point")
     return sse, grad @ J # Apply chain rule
 
 
@@ -151,7 +152,19 @@ def continuous_maximize_R2X(tFac, tOrig):
     """
     tMask = np.isfinite(tOrig)
     tFill = np.nan_to_num(tOrig)
-    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, args=(tFac, tFill, tMask))
+
+    # Setup bounds
+    lb = tFac.cFactor.copy()
+    ub = tFac.cFactor.copy()
+    lb[0:2, :] = -np.inf
+    ub[0:2, :] = np.inf
+    lb[2, :] = 0.1
+    ub[2, :] = 10.0
+    lb[3, :] = 0.1
+    ub[3, :] = 10.0
+    bnds = Bounds(lb.flatten(), ub.flatten(), keep_feasible=True)
+
+    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, bounds=bnds, args=(tFac, tFill, tMask))
     P_updt = np.reshape(res.x, (-1, tFac.rank))
     return P_updt, build_cFactor(tFac, P_updt)
 
