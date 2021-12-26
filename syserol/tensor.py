@@ -41,11 +41,14 @@ def reorient_factors(tFac):
     # Flip the subjects to be positive
     rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
     agMeans = np.sign(np.mean(tFac.factors[2], axis=0))
-    tFac.factors[0] *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
+    tMeans = np.sign(np.mean(tFac.factors[3], axis=0))
+    tFac.factors[0] *= (rMeans * agMeans * tMeans)[np.newaxis, :]
     tFac.factors[1] *= rMeans[np.newaxis, :]
     tFac.factors[2] *= agMeans[np.newaxis, :]
-    # TODO: Stop skipping continuous mode
+    tFac.factors[3] *= tMeans[np.newaxis, :]
 
+    tFac.cFactor[0:2, :] /= tMeans[np.newaxis, :]
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tFac
 
 
