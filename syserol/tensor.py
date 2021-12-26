@@ -174,12 +174,15 @@ def continuous_maximize_R2X(tFac, tOrig):
 
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
-    # TODO: Stop skipping continuous mode
-    for i in range(len(tFac.factors) - 1):
+    for i in range(len(tFac.factors)):
         scales = np.linalg.norm(tFac.factors[i], ord=np.inf, axis=0)
         tFac.weights *= scales
         tFac.factors[i] /= scales
 
+        if i == 3:
+            tFac.cFactor[0:2, :] /= scales[np.newaxis, :]
+
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tFac
 
 
