@@ -44,6 +44,7 @@ def reorient_factors(tFac):
     tFac.factors[0] *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
     tFac.factors[1] *= rMeans[np.newaxis, :]
     tFac.factors[2] *= agMeans[np.newaxis, :]
+    # TODO: Stop skipping continuous mode
 
     return tFac
 
@@ -159,7 +160,7 @@ def continuous_maximize_R2X(tFac, tOrig):
     lb[0:2, :] = -np.inf
     ub[0:2, :] = np.inf
     lb[2, :] = 0.1
-    ub[2, :] = 10.0
+    ub[2, :] = np.inf
     lb[3, :] = 0.1
     ub[3, :] = 10.0
     bnds = Bounds(lb.flatten(), ub.flatten(), keep_feasible=True)
@@ -171,8 +172,9 @@ def continuous_maximize_R2X(tFac, tOrig):
 
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
-    for i, factor in enumerate(tFac.factors):
-        scales = np.linalg.norm(factor, ord=np.inf, axis=0)
+    # TODO: Stop skipping continuous mode
+    for i in range(len(tFac.factors) - 1):
+        scales = np.linalg.norm(tFac.factors[i], ord=np.inf, axis=0)
         tFac.weights *= scales
         tFac.factors[i] /= scales
 
@@ -229,8 +231,8 @@ def perform_CMTF(tOrig=None, r=6):
         if tFac.R2X - R2X_last < 1e-6:
             break
 
-    # tFac = cp_normalize(tFac)
-    # tFac = reorient_factors(tFac)
+    tFac = cp_normalize(tFac)
+    tFac = reorient_factors(tFac)
 
     # if r > 1:
     #     tFac = sort_factors(tFac)
