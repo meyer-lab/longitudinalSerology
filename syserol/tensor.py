@@ -180,8 +180,8 @@ def continuous_maximize_R2X(tFac, tOrig):
 
 def cp_normalize(tFac):
     """ Normalize the factors using the inf norm. """
-    for i in range(len(tFac.factors)):
-        scales = np.linalg.norm(tFac.factors[i], ord=np.inf, axis=0)
+    for i, factor in enumerate(tFac.factors):
+        scales = np.linalg.norm(factor, ord=np.inf, axis=0)
         tFac.weights *= scales
         tFac.factors[i] /= scales
 
