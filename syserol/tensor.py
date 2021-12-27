@@ -53,21 +53,16 @@ def reorient_factors(tFac):
     return tFac
 
 
-def totalVar(tFac):
-    """ Total variance of a factorization on reconstruction. """
-    varr = tl.cp_norm(tFac)
-    return varr
-
-
 def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
     rr = tFac.rank
     tensor = deepcopy(tFac)
-    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
+    vars = np.array([tl.cp_norm(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
     order = np.flip(np.argsort(vars))
 
     tensor.weights = tensor.weights[order]
     tensor.factors = [fac[:, order] for fac in tensor.factors]
+    tensor.cFactor = tensor.cFactor[:, order]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
 
     np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
