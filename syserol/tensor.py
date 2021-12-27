@@ -19,6 +19,7 @@ tl.set_backend('numpy')
 
 def calcR2X(tFac, tIn):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     vTop, vBottom = 0.0, 0.0
 
     tMask = np.isfinite(tIn)
@@ -41,30 +42,30 @@ def reorient_factors(tFac):
     # Flip the subjects to be positive
     rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
     agMeans = np.sign(np.mean(tFac.factors[2], axis=0))
-    tFac.factors[0] *= rMeans[np.newaxis, :] * agMeans[np.newaxis, :]
+    tMeans = np.sign(np.mean(tFac.factors[3], axis=0))
+    tFac.factors[0] *= (rMeans * agMeans * tMeans)[np.newaxis, :]
     tFac.factors[1] *= rMeans[np.newaxis, :]
     tFac.factors[2] *= agMeans[np.newaxis, :]
+    tFac.factors[3] *= tMeans[np.newaxis, :]
 
+    tFac.cFactor[0:2, :] /= tMeans[np.newaxis, :]
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tFac
-
-
-def totalVar(tFac):
-    """ Total variance of a factorization on reconstruction. """
-    varr = tl.cp_norm(tFac)
-    return varr
 
 
 def sort_factors(tFac):
     """ Sort the components from the largest variance to the smallest. """
     rr = tFac.rank
     tensor = deepcopy(tFac)
-    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
+    vars = np.array([tl.cp_norm(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
     order = np.flip(np.argsort(vars))
 
     tensor.weights = tensor.weights[order]
     tensor.factors = [fac[:, order] for fac in tensor.factors]
+    tensor.cFactor = tensor.cFactor[:, order]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
 
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tensor
 
 
@@ -81,6 +82,9 @@ def delete_component(tFac, compNum):
     tensor.weights = np.delete(tensor.weights, compNum)
 
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
+    tensor.cFactor = np.delete(tensor.cFactor, compNum, axis=1)
+
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tensor
 
 
@@ -116,7 +120,7 @@ def curve(x: np.ndarray, P: np.ndarray):
     P will be a 4 element array now.
     """
     a, b, c, d = P
-    y = d + ((a - d) / (1.0 + np.power(x / c, b)))
+    y = b + ((a - b) / (1.0 + np.power(x / c, d)))
     assert np.all(np.isfinite(y))
     return y
 
@@ -159,7 +163,7 @@ def continuous_maximize_R2X(tFac, tOrig):
     lb[0:2, :] = -np.inf
     ub[0:2, :] = np.inf
     lb[2, :] = 0.1
-    ub[2, :] = 10.0
+    ub[2, :] = np.inf
     lb[3, :] = 0.1
     ub[3, :] = 10.0
     bnds = Bounds(lb.flatten(), ub.flatten(), keep_feasible=True)
@@ -176,6 +180,10 @@ def cp_normalize(tFac):
         tFac.weights *= scales
         tFac.factors[i] /= scales
 
+        if i == 3:
+            tFac.cFactor[0:2, :] /= scales[np.newaxis, :]
+
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tFac
 
 
@@ -186,7 +194,7 @@ def check_unimodality(arr):
     assert np.all(diffMin * diffMax >= 0.0)
 
 
-def perform_CMTF(tOrig=None, r=6):
+def perform_CMTF(tOrig=None, r=6, tol=1e-4, maxiter=300):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, _ = Tensor4D()
@@ -196,8 +204,7 @@ def perform_CMTF(tOrig=None, r=6):
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
 
-    R2X_last = -np.inf
-    tFac.R2X = calcR2X(tFac, tOrig)
+    tFac.R2X = -np.inf
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
@@ -208,7 +215,7 @@ def perform_CMTF(tOrig=None, r=6):
     # with Zohar curve, P has 4 parameters
     tFac.cFactor = np.ones((4, r))
 
-    tq = tqdm(range(200))
+    tq = tqdm(range(maxiter))
     for _ in tq:
         # PARAFAC on all modes
         for m in range(0, len(tFac.factors) - 1):
@@ -226,13 +233,13 @@ def perform_CMTF(tOrig=None, r=6):
         assert tFac.R2X > 0.0
         tq.set_postfix(R2X=tFac.R2X, refresh=False)
 
-        if tFac.R2X - R2X_last < 1e-6:
+        if tFac.R2X - R2X_last < tol:
             break
 
-    # tFac = cp_normalize(tFac)
-    # tFac = reorient_factors(tFac)
+    tFac = cp_normalize(tFac)
+    tFac = reorient_factors(tFac)
 
-    # if r > 1:
-    #     tFac = sort_factors(tFac)
+    if r > 1:
+        tFac = sort_factors(tFac)
 
     return tFac

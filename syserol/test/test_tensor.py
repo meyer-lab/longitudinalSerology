@@ -2,18 +2,17 @@
 Unit test file.
 """
 import numpy as np
-import pandas as pd
-import pytest
 import tensorly as tl
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..tensor import perform_CMTF, delete_component, calcR2X, sort_factors
+from ..tensor import perform_CMTF, delete_component, calcR2X, sort_factors, build_cFactor
+from ..COVID import Tensor4D, dayLabels
 
 
 def test_R2X():
     """ Test to ensure R2X for higher components is larger. """
     arr = []
-    for i in range(1, 7):
+    for i in range(1, 6):
         facT = perform_CMTF(r=i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))
@@ -27,40 +26,36 @@ def test_R2X():
     assert np.max(arr) <= 1
 
 
-@pytest.mark.skip()
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
-    tOrig, mOrig = createCube()
-    facT = perform_CMTF(r=4)
+    tOrig, _ = Tensor4D()
+    facT = perform_CMTF(tOrig, r=4, maxiter=3)
 
-    fullR2X = calcR2X(facT, tOrig, mOrig)
+    fullR2X = calcR2X(facT, tOrig)
 
     for ii in range(facT.rank):
         facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
 
-        delR2X = calcR2X(facTdel, tOrig, mOrig)
+        delR2X = calcR2X(facTdel, tOrig)
 
         assert delR2X < fullR2X
 
 
-@pytest.mark.skip()
 def test_sort():
     """ Test that sorting does not affect anything. """
-    tOrig, mOrig = createCube()
+    tOrig, _ = Tensor4D()
+    tFac = random_cp(tOrig.shape, 8)
+    tFac.cFactor = np.ones((4, 8))
+    tFac.time = dayLabels()
+    tFac.factors[3] = build_cFactor(tFac, tFac.cFactor)
 
-    tFac = random_cp(tOrig.shape, 3)
-    tFac.mFactor = np.random.randn(mOrig.shape[1], 3)
-
-    R2X = calcR2X(tFac, tOrig, mOrig)
+    R2X = calcR2X(tFac, tOrig)
     tRec = tl.cp_to_tensor(tFac)
-    mRec = buildGlycan(tFac)
 
     tFac = sort_factors(tFac)
-    sR2X = calcR2X(tFac, tOrig, mOrig)
+    sR2X = calcR2X(tFac, tOrig)
     stRec = tl.cp_to_tensor(tFac)
-    smRec = buildGlycan(tFac)
 
     np.testing.assert_allclose(R2X, sR2X)
     np.testing.assert_allclose(tRec, stRec)
-    np.testing.assert_allclose(mRec, smRec)
