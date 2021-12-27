@@ -5,7 +5,7 @@ import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..tensor import perform_CMTF, delete_component, calcR2X, sort_factors
+from ..tensor import perform_CMTF, delete_component, calcR2X, sort_factors, build_cFactor
 from ..COVID import Tensor4D, dayLabels
 
 
@@ -48,6 +48,7 @@ def test_sort():
     tFac = random_cp(tOrig.shape, 8)
     tFac.cFactor = np.ones((4, 8))
     tFac.time = dayLabels()
+    tFac.factors[3] = build_cFactor(tFac, tFac.cFactor)
 
     R2X = calcR2X(tFac, tOrig)
     tRec = tl.cp_to_tensor(tFac)
