@@ -19,6 +19,7 @@ tl.set_backend('numpy')
 
 def calcR2X(tFac, tIn):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     vTop, vBottom = 0.0, 0.0
 
     tMask = np.isfinite(tIn)
@@ -69,6 +70,7 @@ def sort_factors(tFac):
     tensor.factors = [fac[:, order] for fac in tensor.factors]
     np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
 
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tensor
 
 
@@ -87,6 +89,7 @@ def delete_component(tFac, compNum):
     tensor.factors = [np.delete(fac, compNum, axis=1) for fac in tensor.factors]
     tensor.cFactor = np.delete(tensor.cFactor, compNum, axis=1)
 
+    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
     return tensor
 
 
@@ -196,21 +199,6 @@ def check_unimodality(arr):
     assert np.all(diffMin * diffMax >= 0.0)
 
 
-def sort_factors(tFac):
-    """ Sort the components from the largest variance to the smallest. """
-    rr = tFac.rank
-    tensor = deepcopy(tFac)
-    vars = np.array([totalVar(delete_component(tFac, np.delete(np.arange(rr), i))) for i in np.arange(rr)])
-    order = np.flip(np.argsort(vars))
-
-    tensor.weights = tensor.weights[order]
-    tensor.factors = [fac[:, order] for fac in tensor.factors]
-    tFac.cFactor = tFac.cFactor[:, order]
-    np.testing.assert_allclose(tl.cp_to_tensor(tFac), tl.cp_to_tensor(tensor))
-
-    return tensor
-
-
 def perform_CMTF(tOrig=None, r=6, tol=1e-4, maxiter=300):
     """ Perform CMTF decomposition. """
     if tOrig is None:
@@ -221,8 +209,7 @@ def perform_CMTF(tOrig=None, r=6, tol=1e-4, maxiter=300):
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
 
-    R2X_last = -np.inf
-    tFac.R2X = calcR2X(tFac, tOrig)
+    tFac.R2X = -np.inf
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]

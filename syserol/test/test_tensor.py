@@ -12,7 +12,7 @@ from ..COVID import Tensor4D
 def test_R2X():
     """ Test to ensure R2X for higher components is larger. """
     arr = []
-    for i in range(1, 7):
+    for i in range(1, 6):
         facT = perform_CMTF(r=i)
         assert np.all(np.isfinite(facT.factors[0]))
         assert np.all(np.isfinite(facT.factors[1]))
@@ -29,7 +29,7 @@ def test_R2X():
 def test_delete():
     """ Test deleting a component results in a valid tensor. """
     tOrig, _ = Tensor4D()
-    facT = perform_CMTF(tOrig, r=4)
+    facT = perform_CMTF(tOrig, r=4, maxiter=3)
 
     fullR2X = calcR2X(facT, tOrig)
 

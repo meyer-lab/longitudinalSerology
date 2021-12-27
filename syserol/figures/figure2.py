@@ -2,8 +2,7 @@ import numpy as np
 import seaborn as sns
 from .common import getSetup, subplotLabel
 from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal
-from syserol.tensor import perform_CMTF, tensor_degFreedom, cp_normalize, reorient_factors, sort_factors
-from matplotlib.ticker import ScalarFormatter
+from syserol.tensor import perform_CMTF
 from itertools import groupby
 
 
@@ -11,18 +10,11 @@ from itertools import groupby
 def makeFigure():
     ax, f = getSetup((13, 9), (1, 4))
 
-    comps = np.arange(1,6)
     tensor, _ = Tensor4D()
-    CMTFfacs = [perform_CMTF(tensor, cc) for cc in comps]
-
-    CMTFfacs = [cp_normalize(f) for f in CMTFfacs]
-    CMTFfacs = [reorient_factors(f) for f in CMTFfacs]
-    CMTFfacs = [sort_factors(f) if i > 0 else f for i,
-                f in enumerate(CMTFfacs)]
 
     Rlabels, agLabels = dimensionLabel3D()
     days = dayLabels()
-    tfac = CMTFfacs[-1]
+    tfac = perform_CMTF(tensor, 5)
 
     df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
