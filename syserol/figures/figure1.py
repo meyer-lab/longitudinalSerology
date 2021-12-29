@@ -5,6 +5,7 @@ from syserol.COVID import Tensor4D
 from syserol.tensor import calcR2X, perform_CMTF, tensor_degFreedom
 from matplotlib.ticker import ScalarFormatter
 from tensorly.decomposition import parafac
+from tensorpack import perform_CP
 
 
 def makeFigure():
@@ -25,9 +26,8 @@ def makeFigure():
         sizeTfac[i] = tensor_degFreedom(tFac)
 
         # Run factorization with standard CP
-        CP = parafac(tensor, cc, tol=1e-10, n_iter_max=1000,
-                        linesearch=True, orthogonalise=2)
-        CPR2X[i] = calcR2X(CP, tensor, continuous=False)
+        CP = perform_CP(tensor, cc)
+        CPR2X[i] = CP.R2X
         sizeCP[i] = tensor_degFreedom(CP, continuous=False)
 
     
