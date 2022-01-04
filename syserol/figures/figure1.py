@@ -29,7 +29,9 @@ def makeFigure():
         CP = perform_CP(tensor, cc)
         CPR2X[i] = CP.R2X
         sizeCP[i] = tensor_degFreedom(CP, continuous=False)
-
+    
+    print(tFacR2X)
+    print(CPR2X)
     
     ax[0].set_xscale("log", base=2)
     ax[0].plot(sizeTfac, 1.0 - tFacR2X, ".", label="Continuous Factorization")
