@@ -17,9 +17,11 @@ from .COVID import Tensor4D, dayLabels
 tl.set_backend('numpy')
 
 
-def calcR2X(tFac, tIn):
+def calcR2X(tFac, tIn, continuous=True):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
-    np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
+    if continuous:
+        np.testing.assert_allclose(build_cFactor(tFac, tFac.cFactor), tFac.factors[3])
+    
     vTop, vBottom = 0.0, 0.0
 
     tMask = np.isfinite(tIn)
@@ -30,9 +32,12 @@ def calcR2X(tFac, tIn):
     return 1.0 - vTop / vBottom
 
 
-def tensor_degFreedom(tFac) -> int:
+def tensor_degFreedom(tFac, continuous=True) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """
-    deg = np.sum([f.size for f in tFac.factors[0:3]]) + tFac.cFactor.size
+    if continuous:
+        deg = np.sum([f.size for f in tFac.factors[0:3]]) + tFac.cFactor.size
+    else:
+        deg = np.sum([f.size for f in tFac.factors])
 
     return deg
 
