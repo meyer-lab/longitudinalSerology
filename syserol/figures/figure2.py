@@ -40,10 +40,10 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
         newLabels = [item for sublist in newLabels for item in sublist]
 
         sns.heatmap(factors, cmap="PiYG",
-                    xticklabels=xlabel, yticklabels=newLabels, ax=ax)
+                    xticklabels=xlabel, yticklabels=newLabels, vmin=-1, vmax=1, ax=ax)
     else:
         sns.heatmap(factors, cmap="PiYG",
-                    xticklabels=xlabel, yticklabels=ylabel, ax=ax)
+                    xticklabels=xlabel, yticklabels=ylabel, vmin=-1, vmax=1, ax=ax)
     ax.set_xlabel("Components")
     ax.set_title(plotLabel)
 
