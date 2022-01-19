@@ -47,7 +47,8 @@ def reorient_factors(tFac):
     # Flip the subjects to be positive
     rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
     agMeans = np.sign(np.mean(tFac.factors[2], axis=0))
-    tMeans = np.sign(np.mean(tFac.factors[3], axis=0))
+    # Flip time to be increasing always
+    tMeans = np.sign(tFac.cFactor[1,:] - tFac.cFactor[0,:])
     tFac.factors[0] *= (rMeans * agMeans * tMeans)[np.newaxis, :]
     tFac.factors[1] *= rMeans[np.newaxis, :]
     tFac.factors[2] *= agMeans[np.newaxis, :]
