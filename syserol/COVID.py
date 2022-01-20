@@ -52,7 +52,9 @@ def dayLabels():
 def Tensor4D():
     """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """
     df = pbsSubtractOriginal()
-    subjects = np.unique(df['patient_ID'])
+    subj_indexes = np.unique(df['patient_ID'], return_index=True)[1]
+    # preserve order of subjects
+    subjects = [df['patient_ID'][index] for index in sorted(subj_indexes)]
     Rlabels, AgLabels = dimensionLabel3D()
     days = np.unique(df["days"])
     ndf = df.iloc[:, np.hstack([[1,10], np.arange(23, len(df.columns))])]
