@@ -121,7 +121,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
 
 def curve(x: np.ndarray, P: np.ndarray):
     """ Function
-    y(t) = d + (a − d)/(1 + (t/c)b) 
+    y(t) = d + (a - d)/(1 + (t/c)b) 
     Based on Zohar et al. curve
     P will be a 4 element array now.
     """
@@ -146,8 +146,12 @@ def continue_R2X(p_init, tFac, tFill, tMask):
     which uses our current parameter to solve for continuous factor.
     Returns a negative R2X for minimization. """
     tFac.factors[3] = build_cFactor(tFac, p_init)
-    grad, sse = cp_lstsq_grad(tFac, tFill, return_loss=True, mask=tMask)
-    grad = grad.factors[3].flatten()
+
+    # Grad calculation (same as cp_lstsq_grad)
+    diff = (tFill - tl.cp_to_tensor(tFac)) * tMask
+    sse = 0.5*np.sum(diff**2)
+    grad = -tl.unfolding_dot_khatri_rao(diff, tFac, 3).flatten()
+
     J = approx_derivative(lambda x: build_cFactor(tFac, x).flatten(), p_init, method="3-point")
     return sse, grad @ J # Apply chain rule
 
@@ -174,7 +178,7 @@ def continuous_maximize_R2X(tFac, tOrig):
     ub[3, :] = 10.0
     bnds = Bounds(lb.flatten(), ub.flatten(), keep_feasible=True)
 
-    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, bounds=bnds, args=(tFac, tFill, tMask))
+    res = minimize(continue_R2X, tFac.cFactor.flatten(), jac=True, bounds=bnds, args=(tFac, tFill, tMask), options={"maxiter": 30})
     P_updt = np.reshape(res.x, (-1, tFac.rank))
     return P_updt, build_cFactor(tFac, P_updt)
 
