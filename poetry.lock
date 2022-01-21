@@ -739,7 +739,7 @@ scipy = "*"
 
 [[package]]
 name = "tensorpack"
-version = "0.0.2"
+version = "0.0.8"
 description = "A collection of tensor methods from the Meyer lab."
 category = "main"
 optional = false
@@ -749,16 +749,14 @@ develop = false
 [package.dependencies]
 matplotlib = "^3.5.0"
 numpy = "^1.21"
-scikit-learn = "^1.0.1"
-scipy = "^1.7"
-seaborn = "^0.11.2"
+pandas = "^1.3.5"
 tensorly = "^0.7"
 
 [package.source]
 type = "git"
 url = "https://github.com/meyer-lab/tensorpack.git"
-reference = "v0.0.4"
-resolved_reference = "4cb6048e3f6e845627124f43943455be268ad8ae"
+reference = "main"
+resolved_reference = "830fa398e6b49951104bf50bbb6663886a7d6421"
 
 [[package]]
 name = "threadpoolctl"
@@ -838,7 +836,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "0d98ae9add6142eaa342d830a4b1e6ca4d51778891dd007d98438c0eb02171c1"
+content-hash = "e2484f442bc91a20ba1129f8e3d2fc8b460009f83505335cba84d727fb8d4b65"
 
 [metadata.files]
 appnope = [
