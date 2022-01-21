@@ -17,6 +17,7 @@ tqdm = "^4.62.3"
 tensorpack = { git = "https://github.com/meyer-lab/tensorpack.git", rev = "v0.0.7"}
 svgutils = "^0.3.4"
 ipykernel = "^6.5.1"
+setuptools = "^60.5.0"
 
 
 [tool.poetry.dev-dependencies]
