@@ -19,8 +19,9 @@ def makeFigure():
 
     df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
+    patients = np.unique(df['patient_ID'], return_index=True)
     comp_plot(tfac.factors[0], components,
-              list(df.loc[np.unique(df['patient_ID'])]['group']), "Subjects", ax[0], True)
+              list(df.iloc[np.sort(patients[1])]['group']), "Subjects", ax[0], True)
     comp_plot(tfac.factors[1], components, agLabels, "Antigens", ax[1])
     comp_plot(tfac.factors[2], components, Rlabels, "Receptors", ax[2])
     lineplot(tfac, days.astype(int), "Time (days)", ax[3])
