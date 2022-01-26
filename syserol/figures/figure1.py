@@ -9,7 +9,7 @@ from tensorpack import perform_CP
 
 
 def makeFigure():
-    ax, f = getSetup((13, 9), (1, 1))
+    ax, f = getSetup((9, 3), (1, 1))
     comps = np.arange(1, 8)
 
     tFacR2X = np.zeros(comps.shape)
