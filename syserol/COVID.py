@@ -104,10 +104,11 @@ def dimensionLabel3D():
 
 def COVIDpredict(tfac):
     df = pbsSubtractOriginal()
-    subjj = df["group"].isin(["Severe", "Deceased"])
+    patients = np.unique(df['patient_ID'], return_index=True)
+    subjj = df.iloc[np.sort(patients[1])]['group'].isin(["Severe", "Deceased"])
 
     X = tfac.factors[0][subjj, :]
-    y = pd.factorize(df.loc[subjj, "group"])[0]
+    y = pd.factorize(df.loc[subjj[subjj].index,"group"])[0]
     aucs = []
 
     kf = KFold(n_splits=10, shuffle=True)
