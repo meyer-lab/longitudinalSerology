@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, roc_auc_score
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 
 
 def pbsSubtractOriginal():
@@ -111,7 +111,7 @@ def COVIDpredict(tfac):
     y = pd.factorize(df.loc[subjj[subjj].index,"group"])[0]
     aucs = []
 
-    kf = KFold(n_splits=10, shuffle=True)
+    kf = StratifiedKFold(n_splits=10, shuffle=True)
     outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
     for ii, (train, test) in enumerate(kf.split(X)):
         model = LogisticRegression().fit(X[train], y[train])
