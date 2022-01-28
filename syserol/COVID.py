@@ -113,7 +113,7 @@ def COVIDpredict(tfac):
 
     kf = StratifiedKFold(n_splits=10, shuffle=True)
     outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
-    for ii, (train, test) in enumerate(kf.split(X)):
+    for ii, (train, test) in enumerate(kf.split(X, y)):
         model = LogisticRegression().fit(X[train], y[train])
         y_score = model.predict_proba(X[test])
         fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
