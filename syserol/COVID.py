@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, roc_auc_score
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 
 
 def pbsSubtractOriginal():
@@ -104,15 +104,16 @@ def dimensionLabel3D():
 
 def COVIDpredict(tfac):
     df = pbsSubtractOriginal()
-    subjj = df["group"].isin(["Severe", "Deceased"])
+    patients = np.unique(df['patient_ID'], return_index=True)
+    subjj = df.iloc[np.sort(patients[1])]['group'].isin(["Severe", "Deceased"])
 
     X = tfac.factors[0][subjj, :]
-    y = pd.factorize(df.loc[subjj, "group"])[0]
+    y = pd.factorize(df.loc[subjj[subjj].index,"group"])[0]
     aucs = []
 
-    kf = KFold(n_splits=10, shuffle=True)
+    kf = StratifiedKFold(n_splits=10, shuffle=True)
     outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
-    for ii, (train, test) in enumerate(kf.split(X)):
+    for ii, (train, test) in enumerate(kf.split(X, y)):
         model = LogisticRegression().fit(X[train], y[train])
         y_score = model.predict_proba(X[test])
         fpr, tpr, _ = roc_curve(y[test], y_score[:, 1])
