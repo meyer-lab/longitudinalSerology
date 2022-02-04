@@ -15,6 +15,7 @@ matplotlib = "^3.5.0"
 seaborn = "^0.11.2"
 tqdm = "^4.62.3"
 tensorpack = { git = "https://github.com/meyer-lab/tensorpack.git", branch = "main" }
+tensordata = { git = "https://github.com/meyer-lab/tensordata.git", branch = "main" }
 svgutils = "^0.3.4"
 ipykernel = "^6.5.1"
 
