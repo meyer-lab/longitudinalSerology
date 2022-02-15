@@ -220,7 +220,11 @@ def perform_CMTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     # get unique days into vector format for continuous solve
-    tFac.time = dayLabels()
+    if tOrig.shape[3] == 16:
+        tFac.time = dayLabels(short=True)
+    else:
+        tFac.time = dayLabels()
+        
     # initialize parameter matrix
     # with Zohar curve, P has 4 parameters
     tFac.cFactor = np.ones((4, r))

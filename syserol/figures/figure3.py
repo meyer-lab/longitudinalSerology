@@ -2,7 +2,7 @@
 import numpy as np
 import seaborn as sns
 import pandas as pd
-from syserol.COVID import Tensor4D, pbsSubtractOriginal, COVIDpredict
+from syserol.COVID import Tensor4D, pbsSubtractOriginal, COVIDpredict, earlyDaysdf
 from syserol.tensor import perform_CMTF
 from .common import getSetup, subplotLabel
 from tensorpack import perform_CP
@@ -13,7 +13,7 @@ from scipy.stats import sem
 
 
 def makeFigure():
-    ax, f = getSetup((9, 6), (2, 2))
+    ax, f = getSetup((9, 6), (3, 2))
 
     df = pbsSubtractOriginal()
     patients = np.unique(df['patient_ID'], return_index=True)
@@ -34,6 +34,13 @@ def makeFigure():
     CP = perform_CP(tensor, 6)
     roc_CP, auc_CP = COVIDpredict(CP)
     log_plot(roc_CP, auc_CP, ax[3], continuous=False)
+
+    # Predict using only days 0-15
+    df = earlyDaysdf()
+    tensor, _ = Tensor4D(df)
+    tfac_er = perform_CMTF(tensor)
+    roc_er, auc_er = COVIDpredict(tfac_er, df)
+    log_plot(roc_er, auc_er, ax[4])
 
     subplotLabel(ax)
     return f
