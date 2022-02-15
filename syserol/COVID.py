@@ -43,15 +43,28 @@ def to_slice(subjects, df):
 
     return tensor
 
-def dayLabels():
+def dayLabels(short=False):
     """ Returns day labels for 4D tensor"""
     df = pbsSubtractOriginal()
     days = np.unique(df["days"])
+
+    if short:
+        days = days[days < 16]
+
     return days
 
-def Tensor4D():
-    """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """
+
+def earlyDaysdf():
     df = pbsSubtractOriginal()
+    df = df.loc[df["days"] < 16]
+    df.reset_index(drop=True, inplace=True)
+
+    return df
+
+def Tensor4D(df=None):
+    """ Create a 4D Tensor (Subject, Antigen, Receptor, Time) """
+    if df is None:
+        df = pbsSubtractOriginal()
     subj_indexes = np.unique(df['patient_ID'], return_index=True)[1]
     # preserve order of subjects
     subjects = [df['patient_ID'][index] for index in sorted(subj_indexes)]
@@ -102,8 +115,10 @@ def dimensionLabel3D():
     return receptorLabel, antigenLabel
 
 
-def COVIDpredict(tfac):
-    df = pbsSubtractOriginal()
+def COVIDpredict(tfac, df=None):
+    """ Run Cross-Validated Logistic Regression for COVID Patients"""
+    if df is None:
+        df = pbsSubtractOriginal()
     patients = np.unique(df['patient_ID'], return_index=True)
     subjj = df.iloc[np.sort(patients[1])]['group'].isin(["Severe", "Deceased"])
 
