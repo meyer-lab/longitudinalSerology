@@ -127,7 +127,9 @@ def COVIDpredict(tfac, df=None):
     aucs = []
 
     kf = StratifiedKFold(n_splits=10, shuffle=True)
-    outt = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    outt = pd.DataFrame({'fold':pd.Series([], dtype='int'),
+                   'FPR':pd.Series([], dtype='float'),
+                   'TPR':pd.Series([], dtype='float')})
     for ii, (train, test) in enumerate(kf.split(X, y)):
         model = LogisticRegression().fit(X[train], y[train])
         y_score = model.predict_proba(X[test])
