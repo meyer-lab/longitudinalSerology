@@ -138,7 +138,9 @@ def COVIDpredict(tfac, df=None):
         outt = pd.concat([outt, pd.DataFrame(data={"fold": [ii+1] * len(fpr), "FPR": fpr, "TPR": tpr})])
 
     xs = pd.unique(outt["FPR"])
-    ipl = pd.DataFrame(columns=["fold", "FPR", "TPR"])
+    ipl = pd.DataFrame({'fold':pd.Series([], dtype='int'),
+                   'FPR':pd.Series([], dtype='float'),
+                   'TPR':pd.Series([], dtype='float')})
     for ii in range(kf.n_splits):
         ys = np.interp(xs, outt.loc[outt["fold"]==(ii+1), "FPR"], outt.loc[outt["fold"]==(ii+1), "TPR"])
         ys[0] = 0
