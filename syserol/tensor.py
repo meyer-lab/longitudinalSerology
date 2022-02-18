@@ -3,15 +3,15 @@ Tensor decomposition methods
 """
 import numpy as np
 from tqdm import tqdm
-from scipy.optimize import minimize, Bounds
-from syserol.COVID import Tensor4D
 import tensorly as tl
+from scipy.optimize import minimize, Bounds
 from scipy.optimize._numdiff import approx_derivative
 from tensorly.cp_tensor import cp_lstsq_grad
 from tensorly.tenalg import khatri_rao
-from tensorpack import initialize_cp
+from tensorpack import initialize_cp, perform_CP
 from copy import deepcopy
 from .COVID import Tensor4D, dayLabels
+from .tensor3D import Tensor3D
 
 
 tl.set_backend('numpy')
@@ -210,6 +210,10 @@ def perform_CMTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
         tOrig, _ = Tensor4D()
 
     tFac = initialize_cp(tOrig, r)
+    # Special initialization for receptor and antigens mode, from 3D factorization
+    tensor_3D, _ = Tensor3D()
+    CPfac = perform_CP(tensor_3D, r)
+    tFac.factors[1], tFac.factors[2] = CPfac.factors[1], CPfac.factors[2]
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
