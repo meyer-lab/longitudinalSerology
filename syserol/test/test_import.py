@@ -9,4 +9,6 @@ def test_COVID_import():
     """ Test COVID import functions. """
     pbsSubtractOriginal()
     tensor, _ = Tensor4D()
-    tt, _ = kaplonek_4D()
+    tt, axes = kaplonek_4D()
+    for ii in range(len(axes)):
+        assert tt.shape[ii] == len(axes[ii])
