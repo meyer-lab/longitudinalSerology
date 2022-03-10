@@ -8,10 +8,11 @@ from itertools import groupby
 
 
 
-def makeFigure():
+def makeFigure(tensor=None):
     ax, f = getSetup((13, 9), (1, 4))
 
-    tensor, _ = Tensor4D()
+    if tensor is None:
+        tensor, _ = Tensor4D()
 
     Rlabels, agLabels = dimensionLabel3D()
     days = dayLabels()

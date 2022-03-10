@@ -9,7 +9,7 @@ from tensorly.decomposition import parafac
 from tensorpack import perform_CP
 
 
-def makeFigure():
+def makeFigure(tensor=None, tensor_3D=None):
     ax, f = getSetup((7, 3), (1, 2))
     comps = np.arange(1, 8)
 
@@ -17,7 +17,9 @@ def makeFigure():
     sizeTfac = np.zeros(comps.shape)
     CPR2X = np.zeros(comps.shape)
     sizeCP = np.zeros(comps.shape)
-    tensor, _ = Tensor4D()
+
+    if tensor is None:
+        tensor, _ = Tensor4D()
     
     for i, cc in enumerate(comps):
         # Run factorization with continuous solve
@@ -31,9 +33,10 @@ def makeFigure():
         sizeCP[i] = tensor_degFreedom(CP, continuous=False)
 
     # Run factorization for 3D tensor
-    tensor_3D, _ = Tensor3D()
-    CPfacs = [parafac(tensor_3D, cc, tol=1e-10, n_iter_max=1000,
-                        linesearch=True, orthogonalise=2) for cc in comps]
+    if tensor_3D is None:
+        tensor_3D, _ = Tensor3D()
+
+    CPfacs = [perform_CP(tensor_3D, cc) for cc in comps]
     sizeCP = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
     # Normalize 3D factors
     CPfacs = [cp_normalize_3D(f) for f in CPfacs]
@@ -43,6 +46,9 @@ def makeFigure():
     # Calculate R2X
     R2X_3D = np.array([calcR2X(f, tensor_3D, continuous=False) for f in CPfacs])
 
+    print("Longitudinal R2X: ", tFacR2X, '\n')
+    print("CP 4D R2X: ", CPR2X, '\n')
+    print("3D CP R2X: ", R2X_3D, '\n')
 
     ax[0].scatter(comps, tFacR2X, s=10, label="4D Continuous Tensor Factorization")
     ax[0].scatter(comps, R2X_3D, s=10, label="3D Tensor Factorization")
