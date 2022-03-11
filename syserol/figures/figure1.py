@@ -9,7 +9,14 @@ from tensorly.decomposition import parafac
 from tensorpack import perform_CP
 
 
-def makeFigure(tensor=None, tensor_3D=None):
+def makeFigure():
+    """ Generate Figure 1, which runs generic R2X Plots function:
+        Get R2X values for various methods on out COVID dataset """
+    return R2X_Plots()
+
+
+def R2X_Plots(tensor=None, tensor_3D=None):
+    """ Generalized code for making R2X plots, capable of handling COVID or simulated data """
     ax, f = getSetup((7, 3), (1, 2))
     comps = np.arange(1, 8)
 
