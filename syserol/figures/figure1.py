@@ -44,7 +44,7 @@ def R2X_Plots(tensor=None, tensor_3D=None):
         tensor_3D, _ = Tensor3D()
 
     CPfacs = [perform_CP(tensor_3D, cc) for cc in comps]
-    sizeCP = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
+    size3D = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
     # Normalize 3D factors
     CPfacs = [cp_normalize_3D(f) for f in CPfacs]
     CPfacs = [reorient_factors_3D(f) for f in CPfacs]
@@ -56,6 +56,11 @@ def R2X_Plots(tensor=None, tensor_3D=None):
     print("Longitudinal R2X: ", tFacR2X, '\n')
     print("CP 4D R2X: ", CPR2X, '\n')
     print("3D CP R2X: ", R2X_3D, '\n')
+    print("Size Longitudinal: ", sizeTfac, '\n')
+    print("Size CP 4D: ", sizeCP, '\n')
+    print("Size CP 3D: ", size3D, '\n')
+
+
 
     ax[0].scatter(comps, tFacR2X, s=10, label="4D Continuous Tensor Factorization")
     ax[0].scatter(comps, R2X_3D, s=10, label="3D Tensor Factorization")
@@ -63,13 +68,13 @@ def R2X_Plots(tensor=None, tensor_3D=None):
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
-    ax[0].set_ylim(0, 1)
+    ax[0].set_ylim(top=1.0)
     ax[0].set_xlim(0.5, np.amax(comps) + 0.5)
     ax[0].legend()
 
     ax[1].set_xscale("log", base=2)
     ax[1].plot(sizeTfac, 1.0 - tFacR2X, ".", label="4D Continuous Tensor Factorization")
-    ax[1].plot(sizeCP, 1.0 - R2X_3D, ".", label="3D Tensor Factorization")
+    ax[1].plot(size3D, 1.0 - R2X_3D, ".", label="3D Tensor Factorization")
     ax[1].plot(sizeCP, 1.0 - CPR2X, ".", label="4D CP Tensor Factorization")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Reduced Data")
