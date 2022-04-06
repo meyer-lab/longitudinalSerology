@@ -8,6 +8,6 @@ def makeFigure():
     imputeSim(sim_tensor, .5)
     sim_3d = flatten_to3D(sim_tensor)
 
-    f = R2X_Plots(sim_tensor, sim_3d)
+    f = R2X_Plots(sim_tensor, sim_3d, fig4=True)
     
     return f
