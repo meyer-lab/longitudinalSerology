@@ -12,7 +12,7 @@ from syserol.COVID import Tensor4D, dayLabels
 from tensorpack.decomposition import Decomposition, entry_drop
 
 
-def generate_simulated(r=6):
+def generate_simulated(r=4, rand=False):
     tensor, _ = Tensor4D()
     # Generate random CP tensor, in factor form with our COVID tensor shape
     random_cp = tl.random.random_cp(shape=tensor.shape, rank=r)
@@ -21,13 +21,17 @@ def generate_simulated(r=6):
     random_cp.time = dayLabels()
     # Generate P matrix with realistic values.
     # Based on curve simulation, a, b, c, and d can/will be in the ranges below
-    P = np.zeros((4, r))
-    for i in range(r):
-        a = np.random.uniform(0.01, 1)
-        b = np.random.uniform(0.01, 1.2)
-        c = np.random.uniform(0.01, 30)
-        d = np.random.uniform(0.01, 100)
-        P[:, i] = a, b, c, d
+    if rand:
+        P = np.zeros((4, r))
+        for i in range(r):
+            a = np.random.uniform(0.01, 1)
+            b = np.random.uniform(0.01, 1.2)
+            c = np.random.uniform(0.01, 30)
+            d = np.random.uniform(0.01, 100)
+            P[:, i] = a, b, c, d
+    else:
+        assert r == 4
+        P = np.array([[0.3, 0.1, 0.2, 0.7], [1, 1.1, 1, .95], [20, 2, 30, 8], [30, 2, 5, 10]])
 
     timefac = build_cFactor(random_cp, P)
     # assign random continuous factor to our simulated tensor
