@@ -18,7 +18,7 @@ def makeFigure():
     # add some missingness
     imputeSim(sim_tensor, 0.5)
     # run factorization
-    tFac = perform_CMTF(sim_tensor)
+    tFac = perform_CMTF(sim_tensor, r=4)
 
     # plot factorization curves 
     days = dayLabels()

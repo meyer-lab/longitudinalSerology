@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from syserol.figures.common import getSetup
 from syserol.figures.figure1 import makeFigure
-from syserol.tensor import build_cFactor, continue_R2X, perform_CMTF, curve
+from syserol.tensor import build_cFactor, reorient_factors, sort_factors, cp_normalize, curve
 from syserol.COVID import Tensor4D, dayLabels
 from tensorpack.decomposition import Decomposition, entry_drop
 
@@ -36,6 +36,13 @@ def generate_simulated(r=4, rand=False):
     timefac = build_cFactor(random_cp, P)
     # assign random continuous factor to our simulated tensor
     random_cp.factors[3] = timefac
+    random_cp.cFactor = P
+
+    # run reorient, normalize, and sort beforehand
+    random_cp = cp_normalize(random_cp)
+    random_cp = reorient_factors(random_cp)
+    random_cp = sort_factors(random_cp)
+
     # build the tensor from factors (3 regular CP factors, 1 continuous factor)
     sim_tensor = tl.cp_to_tensor(random_cp)
 
