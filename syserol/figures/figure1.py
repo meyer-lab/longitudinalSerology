@@ -18,7 +18,7 @@ def makeFigure():
 def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     """ Generalized code for making R2X plots, capable of handling COVID or simulated data """
     ax, f = getSetup((7, 3), (1, 2))
-    comps = np.arange(1, 8)
+    comps = np.arange(1, 5)
 
     tFacR2X = np.zeros(comps.shape)
     sizeTfac = np.zeros(comps.shape)
