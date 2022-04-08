@@ -3,7 +3,7 @@ import numpy as np
 from .common import getSetup, subplotLabel
 from syserol.tensor3D import Tensor3D, reorient_factors_3D, cp_normalize_3D, sort_factors_3D
 from syserol.COVID import Tensor4D
-from syserol.tensor import calcR2X, perform_CMTF, tensor_degFreedom
+from syserol.tensor import calcR2X, perform_contTF, tensor_degFreedom
 from matplotlib.ticker import ScalarFormatter
 from tensorly.decomposition import parafac
 from tensorpack import perform_CP
@@ -30,7 +30,7 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     
     for i, cc in enumerate(comps):
         # Run factorization with continuous solve
-        tFac = perform_CMTF(tensor, cc)
+        tFac = perform_contTF(tensor, cc)
         tFacR2X[i] = tFac.R2X
         sizeTfac[i] = tensor_degFreedom(tFac)
 

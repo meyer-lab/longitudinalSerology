@@ -3,7 +3,7 @@ import seaborn as sns
 import pandas as pd
 from .common import getSetup, subplotLabel
 from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal
-from syserol.tensor import perform_CMTF
+from syserol.tensor import perform_contTF
 from itertools import groupby
 
 
@@ -16,7 +16,7 @@ def makeFigure(tensor=None):
 
     Rlabels, agLabels = dimensionLabel3D()
     days = dayLabels()
-    tfac = perform_CMTF(tensor, 5)
+    tfac = perform_contTF(tensor, 5)
 
     df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
