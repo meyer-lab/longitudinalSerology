@@ -1,5 +1,5 @@
 from syserol.simulated import generate_simulated, imputeSim
-from syserol.tensor import perform_CMTF,  flatten_to3D
+from syserol.tensor import perform_contTF,  flatten_to3D
 from syserol.figures.figure1 import R2X_Plots
 
 

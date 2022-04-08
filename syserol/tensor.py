@@ -211,7 +211,7 @@ def check_unimodality(arr):
     assert np.all(diffMin * diffMax >= 0.0)
 
 
-def perform_CMTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
+def perform_contTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, _ = Tensor4D()

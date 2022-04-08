@@ -3,7 +3,7 @@ import numpy as np
 from re import sub
 import seaborn as sns
 from syserol.simulated import generate_simulated, imputeSim, viewP
-from syserol.tensor import perform_CMTF
+from syserol.tensor import perform_contTF
 from syserol.COVID import dayLabels
 from syserol.figures.common import getSetup, subplotLabel
 from syserol.figures.figure2 import lineplot
@@ -20,7 +20,7 @@ def makeFigure():
     # add some missingness
     imputeSim(sim_tensor, 0.5)
     # run factorization
-    tFac = perform_CMTF(sim_tensor, r=4)
+    tFac = perform_contTF(sim_tensor, r=4)
 
     # plot factorization curves 
     days = dayLabels()
@@ -30,7 +30,7 @@ def makeFigure():
     noise = np.random.normal(size=sim_tensor.shape)
     # have to use copy because impute changes in place
     noisyTensor = copy + noise
-    tFac_noisy = perform_CMTF(noisyTensor, r=4)
+    tFac_noisy = perform_contTF(noisyTensor, r=4)
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
 
     subplotLabel(ax)
