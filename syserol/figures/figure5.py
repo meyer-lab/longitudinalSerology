@@ -26,6 +26,7 @@ def makeFigure():
     days = dayLabels()
     lineplot(tFac, days.astype(int), "Time (days)", ax[1])
 
+    np.random.seed(1234)
     noise = np.random.normal(size=sim_tensor.shape)
     # have to use copy because impute changes in place
     noisyTensor = copy + noise
