@@ -42,6 +42,13 @@ def tensor_degFreedom(tFac, continuous=True) -> int:
     return deg
 
 
+def flatten_to3D(tensor):
+    """ Flatten 4D tensor to 3D:
+        the time dimension of the 4D tensor enveloped into subject dimension """
+    time_list = [tensor[:, :, :, i] for i in range(tensor.shape[3])]
+    return np.concatenate(time_list)
+
+
 def reorient_factors(tFac):
     """ This function ensures that factors are negative on at most one direction. """
     # Flip the subjects to be positive
