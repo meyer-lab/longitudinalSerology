@@ -2,8 +2,8 @@ from operator import sub
 import numpy as np
 from .common import getSetup, subplotLabel
 from syserol.tensor3D import Tensor3D, reorient_factors_3D, cp_normalize_3D, sort_factors_3D
-from syserol.COVID import Tensor4D
-from syserol.tensor import calcR2X, perform_contTF, tensor_degFreedom
+from syserol.COVID import Tensor4D, earlyDaysdf
+from syserol.tensor import calcR2X, flatten_to3D, perform_contTF, tensor_degFreedom
 from matplotlib.ticker import ScalarFormatter
 from tensorly.decomposition import parafac
 from tensorpack import perform_CP
@@ -18,7 +18,10 @@ def makeFigure():
 def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     """ Generalized code for making R2X plots, capable of handling COVID or simulated data """
     ax, f = getSetup((7, 3), (1, 2))
-    comps = np.arange(1, 5)
+    if fig4:
+        comps = np.arange(1, 5)
+    else:
+        comps = np.arange(1, 8)
 
     tFacR2X = np.zeros(comps.shape)
     sizeTfac = np.zeros(comps.shape)
@@ -26,6 +29,7 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     sizeCP = np.zeros(comps.shape)
 
     if tensor is None:
+        #df = earlyDaysdf()
         tensor, _ = Tensor4D()
     
     for i, cc in enumerate(comps):
@@ -41,7 +45,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
 
     # Run factorization for 3D tensor
     if tensor_3D is None:
-        tensor_3D, _ = Tensor3D()
+        tensor_3D = flatten_to3D(tensor)
+
 
     CPfacs = [perform_CP(tensor_3D, cc) for cc in comps]
     size3D = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
@@ -63,8 +68,6 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
 
 
     ax[0].scatter(comps, tFacR2X, s=10, label="4D Continuous Tensor Factorization")
-    if fig4 is False:
-        ax[0].scatter(comps, R2X_3D, s=10, label="3D Tensor Factorization")
     ax[0].set_ylabel("CMTF R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
@@ -80,8 +83,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Reduced Data")
     ax[1].set_ylim(bottom=0.0)
-    if fig4 is False:
-        ax[1].set_xlim(2 ** 8 - 100, 2 ** 11 + 100)
+    #if fig4 is False:
+    #    ax[1].set_xlim(2 ** 8 - 100, 2 ** 11 + 100)
     ax[1].xaxis.set_major_formatter(ScalarFormatter())
     ax[1].legend()
 
