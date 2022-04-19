@@ -3,7 +3,7 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 from syserol.COVID import Tensor4D, pbsSubtractOriginal, COVIDpredict, earlyDaysdf
-from syserol.tensor import perform_CMTF
+from syserol.tensor import perform_contTF
 from .common import getSetup, subplotLabel
 from tensorpack import perform_CP
 from sklearn.linear_model import LogisticRegression
@@ -20,9 +20,9 @@ def makeFigure():
     patient_type = list(df.iloc[np.sort(patients[1])]['group'])
 
     # Easy ML, do simple comparison of subject component weights in different groups 
-    tFac = perform_CMTF()
+    tFac = perform_contTF()
     group_plot(tFac, patient_type, ax[0])
-    tFac_2 = perform_CMTF(r=2)
+    tFac_2 = perform_contTF(r=2)
     group_plot(tFac_2, patient_type, ax[1], sev_dec=False, boxplot=True)
     
     # Logistic Regression plots
@@ -38,7 +38,7 @@ def makeFigure():
     # Predict using only days 0-15
     df = earlyDaysdf()
     tensor, _ = Tensor4D(df)
-    tfac_er = perform_CMTF(tensor)
+    tfac_er = perform_contTF(tensor)
     roc_er, auc_er = COVIDpredict(tfac_er, df)
     log_plot(roc_er, auc_er, ax[4])
 

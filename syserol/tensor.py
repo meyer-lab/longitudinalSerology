@@ -42,6 +42,13 @@ def tensor_degFreedom(tFac, continuous=True) -> int:
     return deg
 
 
+def flatten_to3D(tensor):
+    """ Flatten 4D tensor to 3D:
+        the time dimension of the 4D tensor enveloped into subject dimension """
+    time_list = [tensor[:, :, :, i] for i in range(tensor.shape[3])]
+    return np.concatenate(time_list)
+
+
 def reorient_factors(tFac):
     """ This function ensures that factors are negative on at most one direction. """
     # Flip the subjects to be positive
@@ -204,7 +211,7 @@ def check_unimodality(arr):
     assert np.all(diffMin * diffMax >= 0.0)
 
 
-def perform_CMTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
+def perform_contTF(tOrig=None, r=6, tol=1e-5, maxiter=300):
     """ Perform CMTF decomposition. """
     if tOrig is None:
         tOrig, _ = Tensor4D()
