@@ -4,7 +4,7 @@ import pandas as pd
 import tensorly as tl
 from copy import deepcopy
 
-def pbsSubtractOriginal():
+def importZohar3D():
     """ Paper Background subtract, will keep all rows for any confusing result. """
     Cov = pd.read_csv("syserol/data/ZoharCovData.csv", index_col=0)
     # 23 (0-> 23) is the start of IgG1_S
@@ -41,7 +41,7 @@ def to_slice(subjects, df):
 
 def Tensor3D():
     """ Create a 3D Tensor (Antigen, Receptor, Sample in time) """
-    df = pbsSubtractOriginal()
+    df = importZohar3D()
     Rlabels, AgLabels = dimensionLabel3D()
 
     tensor = np.full((len(df), len(AgLabels), len(Rlabels)), np.nan)

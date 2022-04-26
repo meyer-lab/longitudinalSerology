@@ -10,7 +10,7 @@ from syserol.figures.figure2 import lineplot
 from tensorly.metrics import correlation_index
 
 def makeFigure():
-    ax, f = getSetup((8,5), (2,3))
+    ax, f = getSetup((10,7), (2,3))
     # generate simulated data
     sim_tensor, P, sim_factors = generate_simulated()
     copy = np.copy(sim_tensor)
@@ -35,12 +35,12 @@ def makeFigure():
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
 
     # Increase missingness and analyze the correlation index
-    missInterval = 10
+    missInterval = 15
     missingness = np.zeros(missInterval)
-    corrindex_miss = np.zeros((3, missInterval))
+    corrindex_miss = np.zeros((5, missInterval))
     # start at baseline 50% missingness and go up from there. We modified to 50% missingness earlier.
     for i in range(missInterval):
-        for iter in range(3):
+        for iter in range(5):
             # run the factorization on this level of missingness 3 times, to get average for plot
             tFac = perform_contTF(sim_tensor, r=4)
             corrindex_miss[iter, i] = correlation_index(sim_factors.factors, tFac.factors)
@@ -48,14 +48,14 @@ def makeFigure():
         imputeSim(sim_tensor, 0.2) # add more missingness for next loop. The last time won't matter.
 
     # Vary noise scale and check correlation index
-    scale = np.array([1, 10, 100, 1000, 10000, 100000])
+    scale = np.array([-1, 1, 10, 100, 1000, 10000])
     corrindex_noise = np.zeros(len(scale))
     for idx, size in enumerate(scale):
         noisyTensor = copy + noise*size
         tFac_noisy = perform_contTF(noisyTensor, r=4)
         corrindex_noise[idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
 
-    ax[3].scatter(missingness, corrindex_miss.mean(axis=0), s=10)
+    ax[3].errorbar(missingness, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[3].set_ylabel("Correlation Index")
     ax[3].set_xlabel("Missingness Percentage")
     
