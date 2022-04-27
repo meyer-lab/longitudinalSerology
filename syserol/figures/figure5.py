@@ -48,7 +48,7 @@ def makeFigure():
         imputeSim(sim_tensor, 0.2) # add more missingness for next loop. The last time won't matter.
 
     # Vary noise scale and check correlation index
-    scale = np.array([-1, 1, 10, 100, 1000, 10000])
+    scale = np.array([0.1, 1, 10, 100, 1000, 10000])
     corrindex_noise = np.zeros(len(scale))
     for idx, size in enumerate(scale):
         noisyTensor = copy + noise*size
