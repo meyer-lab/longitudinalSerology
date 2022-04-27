@@ -58,12 +58,15 @@ def makeFigure():
     ax[3].errorbar(missingness, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[3].set_ylabel("Correlation Index")
     ax[3].set_xlabel("Missingness Percentage")
+    ax[3].set_ylim(bottom=0.0)
     
     ax[4].scatter(scale, corrindex_noise, s=10)
     ax[4].set_ylabel("Correlation Index")
     ax[4].set_xlabel("Noise Scalar")
     ax[4].set_xscale("log")
+    ax[4].set_ylim(bottom=0.0)
 
+    
     subplotLabel(ax)
     return f
 
