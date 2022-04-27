@@ -47,9 +47,11 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     if tensor_3D is None:
         #tensor_3D = flatten_to3D(tensor)
         tensor_3D, _ = Tensor3D()
-
-    CPfacs = [parafac(tensor_3D, cc, tol=1e-10, n_iter_max=1000,
+        CPfacs = [parafac(tensor_3D, cc, tol=1e-10, n_iter_max=1000,
                         linesearch=True, orthogonalise=2) for cc in comps]
+    else:
+         CPfacs = [perform_CP(tensor_3D, cc) for cc in comps]
+         
     size3D = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
     # Normalize 3D factors
     CPfacs = [cp_normalize_3D(f) for f in CPfacs]
