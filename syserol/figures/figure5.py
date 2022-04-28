@@ -32,6 +32,8 @@ def makeFigure():
 
     np.random.seed(1234)
     noise = np.random.normal(size=sim_tensor.shape)
+    # scale the noise to have the same std of original tensor, so that when we add 1, 10, ..., 10,000 * noise it makes sense
+    noise *= np.std(sim_tensor) 
     # have to use copy because impute changes in place
     noisyTensor = copy + noise
     tFac_noisy = perform_contTF(noisyTensor, r=4)
@@ -55,18 +57,23 @@ def makeFigure():
 
     # Vary noise scale and check correlation index
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
-    corrindex_noise = np.zeros(len(scale))
-    for idx, size in enumerate(scale):
-        noisyTensor = copy + noise*size
-        tFac_noisy = perform_contTF(noisyTensor, r=4)
-        corrindex_noise[idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
+
+    corrindex_noise = np.zeros((3, len(scale)))
+    for iter in range(3):
+        np.random.seed()
+        noise = np.random.normal(size=sim_tensor.shape)
+        noise *= np.std(sim_tensor)
+        for idx, size in enumerate(scale):
+            noisyTensor = copy + noise*size
+            tFac_noisy = perform_contTF(noisyTensor, r=4)
+            corrindex_noise[iter, idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
 
     ax[3].errorbar(missingness, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[3].set_ylabel("Correlation Index")
     ax[3].set_xlabel("Missingness Percentage")
     ax[3].set_ylim(bottom=0.0)
     
-    ax[4].scatter(scale, corrindex_noise, s=10)
+    ax[4].errorbar(scale, corrindex_noise.mean(axis=0), corrindex_noise.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[4].set_ylabel("Correlation Index")
     ax[4].set_xlabel("Noise Scalar")
     ax[4].set_xscale("log")
