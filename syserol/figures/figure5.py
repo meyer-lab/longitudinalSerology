@@ -26,6 +26,9 @@ def makeFigure():
     # plot factorization curves 
     days = dayLabels()
     lineplot(tFac, days.astype(int), "Time (days)", ax[1])
+    ax[1].text(27, .4, f"Corrindex: {round(correlation_index(tFac.factors, sim_factors.factors), 2)}", 
+        bbox=dict(boxstyle='square', fc="w", ec="k"))
+
 
     np.random.seed(1234)
     noise = np.random.normal(size=sim_tensor.shape)
@@ -33,6 +36,9 @@ def makeFigure():
     noisyTensor = copy + noise
     tFac_noisy = perform_contTF(noisyTensor, r=4)
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
+    ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 2)}", 
+        bbox=dict(boxstyle='square', fc="w", ec="k"))
+
 
     # Increase missingness and analyze the correlation index
     missInterval = 15
@@ -66,7 +72,7 @@ def makeFigure():
     ax[4].set_xscale("log")
     ax[4].set_ylim(bottom=0.0)
 
-    
+
     subplotLabel(ax)
     return f
 

@@ -51,7 +51,7 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
                         linesearch=True, orthogonalise=2) for cc in comps]
     else:
          CPfacs = [perform_CP(tensor_3D, cc) for cc in comps]
-         
+
     size3D = [tensor_degFreedom(f, continuous=False) for f in CPfacs]
     # Normalize 3D factors
     CPfacs = [cp_normalize_3D(f) for f in CPfacs]
@@ -68,9 +68,7 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     print("Size CP 4D: ", sizeCP, '\n')
     print("Size CP 3D: ", size3D, '\n')
 
-
-
-    ax[0].scatter(comps, tFacR2X, s=10, label="4D Continuous Tensor Factorization")
+    ax[0].scatter(comps, tFacR2X, s=10)
     ax[0].set_ylabel("CMTF R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
