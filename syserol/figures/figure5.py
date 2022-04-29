@@ -33,7 +33,7 @@ def makeFigure():
     np.random.seed(1234)
     noise = np.random.normal(size=sim_tensor.shape)
     # scale the noise to have the same std of original tensor, so that when we add 1, 10, ..., 10,000 * noise it makes sense
-    noise *= np.std(sim_tensor) 
+    noise *= np.std(copy) 
     # have to use copy because impute changes in place
     noisyTensor = copy + noise
     tFac_noisy = perform_contTF(noisyTensor, r=4)
@@ -62,7 +62,7 @@ def makeFigure():
     for iter in range(3):
         np.random.seed()
         noise = np.random.normal(size=sim_tensor.shape)
-        noise *= np.std(sim_tensor)
+        noise *= np.std(copy)
         for idx, size in enumerate(scale):
             noisyTensor = copy + noise*size
             tFac_noisy = perform_contTF(noisyTensor, r=4)
