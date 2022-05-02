@@ -128,8 +128,10 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo) -> np.ndarray:
 
 def curve(x: np.ndarray, P: np.ndarray):
     """ Function
-    y(t) = d + (a - d)/(1 + (t/c)b) 
-    Based on Zohar et al. curve
+    y(t) = b + (a - b)/(1 + (t/c)^d) 
+    Based on Zohar et al. curve.
+    Just note here that we switched b and d from original equation for ease of checking increasing behavior.
+    But otherwise all is effectively the same, just a labeling difference. 
     P will be a 4 element array now.
     """
     a, b, c, d = P

@@ -1,5 +1,6 @@
 """ Generate a simulated tensor for testing methods """
 
+from random import random
 from sklearn import impute
 import tensorly as tl
 import seaborn as sns
@@ -46,7 +47,7 @@ def generate_simulated(r=4, rand=False):
     # build the tensor from factors (3 regular CP factors, 1 continuous factor)
     sim_tensor = tl.cp_to_tensor(random_cp)
 
-    return sim_tensor, P
+    return sim_tensor, P, random_cp
 
 
 def imputeSim(sim_tensor, missingness):

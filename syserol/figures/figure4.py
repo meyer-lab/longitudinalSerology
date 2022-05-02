@@ -4,7 +4,7 @@ from syserol.figures.figure1 import R2X_Plots
 
 
 def makeFigure():
-    sim_tensor, _ = generate_simulated()
+    sim_tensor, _, _ = generate_simulated()
     imputeSim(sim_tensor, .5)
     sim_3d = flatten_to3D(sim_tensor)
 

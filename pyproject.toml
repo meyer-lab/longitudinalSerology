@@ -9,7 +9,7 @@ license = "MIT"
 python = ">=3.9,<3.11"
 numpy = "^1.21"
 scipy = "^1.7"
-tensorly = "^0.7"
+tensorly = { git = "https://github.com/tensorly/tensorly", branch = "main" }
 scikit-learn = "^1.0.1"
 matplotlib = "^3.5.0"
 seaborn = "^0.11.2"
