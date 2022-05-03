@@ -9,7 +9,7 @@ from itertools import groupby
 
 
 def makeFigure(tensor=None):
-    ax, f = getSetup((13, 9), (1, 4))
+    ax, f = getSetup((10, 4), (1, 4))
 
     if tensor is None:
         tensor, _ = Tensor4D()
@@ -47,6 +47,7 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
     else:
         sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=ylabel, vmin=-1, vmax=1, ax=ax)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation = 0)
     ax.set_xlabel("Components")
     ax.set_title(plotLabel)
 

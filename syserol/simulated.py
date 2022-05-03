@@ -14,9 +14,8 @@ from tensorpack.decomposition import Decomposition, entry_drop
 
 
 def generate_simulated(r=4, rand=False):
-    tensor, _ = Tensor4D()
     # Generate random CP tensor, in factor form with our COVID tensor shape
-    random_cp = tl.random.random_cp(shape=tensor.shape, rank=r)
+    random_cp = tl.random.random_cp(shape=(226, 6, 11, 38), rank=r)
 
     # initialize time factor and continuous factor
     random_cp.time = dayLabels()
