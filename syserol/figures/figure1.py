@@ -69,13 +69,12 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     print("Size CP 3D: ", size3D, '\n')
 
     ax[0].scatter(comps, tFacR2X, s=10)
-    ax[0].set_ylabel("CMTF R2X")
+    ax[0].set_ylabel("Continuous Factorization R2X")
     ax[0].set_xlabel("Number of Components")
     ax[0].set_xticks([x for x in comps])
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(top=1.0)
     ax[0].set_xlim(0.5, np.amax(comps) + 0.5)
-    ax[0].legend()
 
     ax[1].set_xscale("log", base=2)
     ax[1].plot(sizeTfac, 1.0 - tFacR2X, ".", label="4D Continuous Tensor Factorization")
@@ -84,6 +83,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Reduced Data")
     ax[1].set_ylim(bottom=0.0)
+    if fig4:
+        ax[1].set_ylim(top=0.1)
     #if fig4 is False:
     #    ax[1].set_xlim(2 ** 8 - 100, 2 ** 11 + 100)
     ax[1].xaxis.set_major_formatter(ScalarFormatter())
