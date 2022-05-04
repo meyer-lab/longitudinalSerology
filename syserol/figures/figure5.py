@@ -39,7 +39,7 @@ def makeFigure():
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
     ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 2)}", 
         bbox=dict(boxstyle='square', fc="w", ec="k"))
-    ax[1].set_title("Factorization with Noise Added")
+    ax[2].set_title("Factorization with Noise Added")
 
     # Increase missingness and analyze the correlation index
     missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .92, .94, .95, .96, .97, .98, .99]
