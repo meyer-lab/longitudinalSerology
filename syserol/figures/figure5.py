@@ -54,7 +54,7 @@ def makeFigure():
     # Vary noise scale and check correlation index
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
 
-    corrindex_noise = np.zeros((3, len(scale)))
+    corrindex_noise = np.zeros((10, len(scale)))
     for iter in range(10):
         np.random.seed()
         noise = np.random.normal(size=sim_tensor.shape)
