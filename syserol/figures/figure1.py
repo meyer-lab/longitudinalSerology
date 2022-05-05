@@ -84,7 +84,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     ax[1].set_xlabel("Size of Reduced Data")
     ax[1].set_ylim(bottom=0.0)
     if fig4:
-        ax[1].set_ylim(top=0.1)
+        topval = 1.0 - tFacR2X[0]
+        ax[1].set_ylim(top=topval + 0.02)
     #if fig4 is False:
     #    ax[1].set_xlim(2 ** 8 - 100, 2 ** 11 + 100)
     ax[1].xaxis.set_major_formatter(ScalarFormatter())

@@ -31,7 +31,7 @@ def generate_simulated(r=4, rand=False):
             P[:, i] = a, b, c, d
     else:
         assert r == 4
-        P = np.array([[0.3, 0.1, 0.2, 0.7], [1, 1.1, 1, .95], [20, 2, 30, 8], [30, 2, 5, 10]])
+        P = np.array([[0.05, 0.1, 0.2, 0.7], [1, 1.1, 1, .95], [20, 2, 30, 8], [30, 2, 5, 10]])
 
     timefac = build_cFactor(random_cp, P)
     # assign random continuous factor to our simulated tensor

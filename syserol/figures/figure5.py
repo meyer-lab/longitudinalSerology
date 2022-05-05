@@ -42,7 +42,7 @@ def makeFigure():
     ax[2].set_title("Factorization with Noise Added")
 
     # Increase missingness and analyze the correlation index
-    missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .92, .94, .95, .96, .97, .98, .99]
+    missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .93, .96, .99]
     corrindex_miss = np.zeros((3, len(missInterval)))
     for i in range(3):
         for j, miss in enumerate(missInterval):
@@ -55,7 +55,7 @@ def makeFigure():
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
 
     corrindex_noise = np.zeros((3, len(scale)))
-    for iter in range(3):
+    for iter in range(10):
         np.random.seed()
         noise = np.random.normal(size=sim_tensor.shape)
         noise *= np.std(copy)
