@@ -43,8 +43,8 @@ def makeFigure():
 
     # Increase missingness and analyze the correlation index
     missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .93, .96, .99]
-    corrindex_miss = np.zeros((3, len(missInterval)))
-    for i in range(3):
+    corrindex_miss = np.zeros((5, len(missInterval)))
+    for i in range(5):
         for j, miss in enumerate(missInterval):
             sim_tensor, _, sim_factors = generate_simulated()
             imputeSim(sim_tensor, miss)
