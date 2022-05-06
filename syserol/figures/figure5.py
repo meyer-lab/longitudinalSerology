@@ -51,6 +51,8 @@ def makeFigure():
             tFac = perform_contTF(sim_tensor, r=4)
             corrindex_miss[i, j] = correlation_index(sim_factors.factors, tFac.factors)
 
+    print("Missing iters: ", corrindex_miss)
+
     # Vary noise scale and check correlation index
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
 
@@ -63,6 +65,8 @@ def makeFigure():
             noisyTensor = copy + noise*size
             tFac_noisy = perform_contTF(noisyTensor, r=4)
             corrindex_noise[iter, idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
+
+    print("Noise iters: ", corrindex_noise)
 
     ax[3].errorbar(missInterval, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[3].set_ylabel("Correlation Index")
