@@ -25,7 +25,7 @@ def makeFigure():
     # plot factorization curves 
     days = dayLabels()
     lineplot(tFac, days.astype(int), "Time (days)", ax[1])
-    ax[1].text(27, .4, f"Corrindex: {round(correlation_index(tFac.factors, sim_factors.factors), 2)}", 
+    ax[1].text(27, .4, f"Corrindex: {round(correlation_index(tFac.factors, sim_factors.factors), 3)}", 
         bbox=dict(boxstyle='square', fc="w", ec="k"))
     ax[1].set_title(rf"Factorization with 50% of Values Removed")
 
@@ -37,7 +37,7 @@ def makeFigure():
     noisyTensor = copy + noise
     tFac_noisy = perform_contTF(noisyTensor, r=4)
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
-    ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 2)}", 
+    ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 3)}", 
         bbox=dict(boxstyle='square', fc="w", ec="k"))
     ax[2].set_title("Factorization with Noise Added")
 
