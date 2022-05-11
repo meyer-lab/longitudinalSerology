@@ -57,8 +57,8 @@ def makeFigure():
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
 
     corrindex_noise = np.zeros((10, len(scale)))
+    np.random.seed()
     for iter in range(10):
-        np.random.seed()
         noise = np.random.normal(size=sim_tensor.shape)
         noise *= np.std(copy)
         for idx, size in enumerate(scale):
