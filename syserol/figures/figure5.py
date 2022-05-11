@@ -55,14 +55,14 @@ def makeFigure():
 
     # Vary noise scale and check correlation index
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
-
-    corrindex_noise = np.zeros((10, len(scale)))
+    corrindex_noise = np.zeros((5, len(scale)))
     np.random.seed()
-    for iter in range(10):
+    for iter in range(5):
+        sim_tensor, _, sim_factors = generate_simulated()
         noise = np.random.normal(size=sim_tensor.shape)
-        noise *= np.std(copy)
+        noise *= np.std(sim_tensor)
         for idx, size in enumerate(scale):
-            noisyTensor = copy + noise*size
+            noisyTensor = sim_tensor + noise*size
             tFac_noisy = perform_contTF(noisyTensor, r=4)
             corrindex_noise[iter, idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
 
