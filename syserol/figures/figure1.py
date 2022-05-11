@@ -78,8 +78,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
 
     ax[1].set_xscale("log", base=2)
     ax[1].plot(sizeTfac, 1.0 - tFacR2X, ".", label="4D Continuous Tensor Factorization")
-    ax[1].plot(size3D, 1.0 - R2X_3D, ".", label="3D Tensor Factorization")
     ax[1].plot(sizeCP, 1.0 - CPR2X, ".", label="4D CP Tensor Factorization")
+    ax[1].plot(size3D, 1.0 - R2X_3D, ".", label="3D CP Tensor Factorization")
     ax[1].set_ylabel("Normalized Unexplained Variance")
     ax[1].set_xlabel("Size of Reduced Data")
     ax[1].set_ylim(bottom=0.0)
