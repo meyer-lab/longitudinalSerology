@@ -2,7 +2,7 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 from .common import getSetup, subplotLabel
-from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal
+from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal, earlyDaysdf
 from syserol.tensor import perform_contTF
 from itertools import groupby
 
@@ -12,13 +12,14 @@ def makeFigure(tensor=None):
     ax, f = getSetup((10, 4), (1, 4))
 
     if tensor is None:
-        tensor, _ = Tensor4D()
+        df = earlyDaysdf()
+        tensor, _ = Tensor4D(df)
 
     Rlabels, agLabels = dimensionLabel3D()
-    days = dayLabels()
+    days = dayLabels(short=True)
     tfac = perform_contTF(tensor, 5)
 
-    df = pbsSubtractOriginal()
+    #df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
     patients = np.unique(df['patient_ID'], return_index=True)
     comp_plot(tfac.factors[0], components,
