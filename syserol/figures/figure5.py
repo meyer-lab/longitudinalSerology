@@ -22,13 +22,12 @@ def makeFigure():
     imputeSim(sim_tensor, 0.5)
     # run factorization
     tFac = perform_contTF(sim_tensor, r=4)
-
     # plot factorization curves 
     days = dayLabels()
     lineplot(tFac, days.astype(int), "Time (days)", ax[1])
-    ax[1].text(27, .4, f"Corrindex: {round(correlation_index(tFac.factors, sim_factors.factors), 2)}", 
+    ax[1].text(27, .4, f"Corrindex: {round(correlation_index(tFac.factors, sim_factors.factors), 3)}", 
         bbox=dict(boxstyle='square', fc="w", ec="k"))
-
+    ax[1].set_title(rf"Factorization with 50% of Values Removed")
 
     np.random.seed(1234)
     noise = np.random.normal(size=sim_tensor.shape)
@@ -38,37 +37,38 @@ def makeFigure():
     noisyTensor = copy + noise
     tFac_noisy = perform_contTF(noisyTensor, r=4)
     lineplot(tFac_noisy, days.astype(int), "Time (days)", ax[2])
-    ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 2)}", 
+    ax[2].text(27, .4, f"Corrindex: {round(correlation_index(tFac_noisy.factors, sim_factors.factors), 3)}", 
         bbox=dict(boxstyle='square', fc="w", ec="k"))
-
+    ax[2].set_title("Factorization with Noise Added")
 
     # Increase missingness and analyze the correlation index
-    missInterval = 15
-    missingness = np.zeros(missInterval)
-    corrindex_miss = np.zeros((5, missInterval))
-    # start at baseline 50% missingness and go up from there. We modified to 50% missingness earlier.
-    for i in range(missInterval):
-        for iter in range(5):
-            # run the factorization on this level of missingness 3 times, to get average for plot
+    missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .93, .96, .99]
+    corrindex_miss = np.zeros((5, len(missInterval)))
+    for i in range(5):
+        for j, miss in enumerate(missInterval):
+            sim_tensor, _, sim_factors = generate_simulated()
+            imputeSim(sim_tensor, miss)
             tFac = perform_contTF(sim_tensor, r=4)
-            corrindex_miss[iter, i] = correlation_index(sim_factors.factors, tFac.factors)
-        missingness[i] = (np.sum(np.isnan(sim_tensor)))/(np.size(sim_tensor))
-        imputeSim(sim_tensor, 0.2) # add more missingness for next loop. The last time won't matter.
+            corrindex_miss[i, j] = correlation_index(sim_factors.factors, tFac.factors)
+
+    print("Missing iters: ", corrindex_miss)
 
     # Vary noise scale and check correlation index
     scale = np.array([0.1, 1, 10, 100, 1000, 10000])
-
-    corrindex_noise = np.zeros((3, len(scale)))
-    for iter in range(3):
-        np.random.seed()
+    corrindex_noise = np.zeros((5, len(scale)))
+    np.random.seed()
+    for iter in range(5):
+        sim_tensor, _, sim_factors = generate_simulated()
         noise = np.random.normal(size=sim_tensor.shape)
-        noise *= np.std(copy)
+        noise *= np.std(sim_tensor)
         for idx, size in enumerate(scale):
-            noisyTensor = copy + noise*size
+            noisyTensor = sim_tensor + noise*size
             tFac_noisy = perform_contTF(noisyTensor, r=4)
             corrindex_noise[iter, idx] = correlation_index(sim_factors.factors, tFac_noisy.factors)
 
-    ax[3].errorbar(missingness, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
+    print("Noise iters: ", corrindex_noise)
+
+    ax[3].errorbar(missInterval, corrindex_miss.mean(axis=0), corrindex_miss.std(axis=0), linestyle='None', marker='o', ms=3)
     ax[3].set_ylabel("Correlation Index")
     ax[3].set_xlabel("Missingness Percentage")
     ax[3].set_ylim(bottom=0.0)

@@ -2,23 +2,24 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 from .common import getSetup, subplotLabel
-from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal
+from syserol.COVID import Tensor4D, dayLabels, dimensionLabel3D, pbsSubtractOriginal, earlyDaysdf
 from syserol.tensor import perform_contTF
 from itertools import groupby
 
 
 
 def makeFigure(tensor=None):
-    ax, f = getSetup((13, 9), (1, 4))
+    ax, f = getSetup((10, 4), (1, 4))
 
     if tensor is None:
-        tensor, _ = Tensor4D()
+        df = earlyDaysdf()
+        tensor, _ = Tensor4D(df)
 
     Rlabels, agLabels = dimensionLabel3D()
-    days = dayLabels()
+    days = dayLabels(short=True)
     tfac = perform_contTF(tensor, 5)
 
-    df = pbsSubtractOriginal()
+    #df = pbsSubtractOriginal()
     components = [str(ii + 1) for ii in range(tfac.rank)]
     patients = np.unique(df['patient_ID'], return_index=True)
     comp_plot(tfac.factors[0], components,
@@ -47,6 +48,7 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
     else:
         sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=ylabel, vmin=-1, vmax=1, ax=ax)
+    ax.set_yticklabels(ax.get_yticklabels(), rotation = 0)
     ax.set_xlabel("Components")
     ax.set_title(plotLabel)
 
