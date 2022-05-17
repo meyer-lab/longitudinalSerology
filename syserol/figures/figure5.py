@@ -50,7 +50,7 @@ def makeFigure():
     
     
 
-    iters = 1
+    iters = 5
     # Increase missingness and analyze the correlation index
     missInterval = [.5, .55, .6, .65, .7, .75, .8, .83, .87, .9, .93, .96, .99]
     corrindex_miss = np.zeros((iters, len(missInterval)))
