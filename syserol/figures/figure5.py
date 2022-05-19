@@ -88,11 +88,11 @@ def makeFigure():
     ax[4].errorbar(scale, corrindex_noise.mean(axis=0), corrindex_noise.std(axis=0), linestyle='None', marker='o', ms=4)
     ax[4].set_ylabel("Correlation Index", fontsize=11.5)
     ax[4].set_xlabel("Noise Scalar", fontsize=11.5)
-    ax[4].set_xticks([x for x in scale])
-    ax[4].set_xticklabels([x for x in scale])
+    #ax[4].set_xticks([x for x in scale])
+    #ax[4].set_xticklabels([x for x in scale])
     ax[4].set_xscale("log")
     ax[4].set_ylim(bottom=0.0)
-    ax[4].tick_params(axis='both', which='minor', labelsize=10)
+    #ax[4].tick_params(axis='both', which='minor', labelsize=10)
     
     subplotLabel(ax)
     return f
