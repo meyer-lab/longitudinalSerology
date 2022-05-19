@@ -17,7 +17,7 @@ def makeFigure():
 
 def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     """ Generalized code for making R2X plots, capable of handling COVID or simulated data """
-    ax, f = getSetup((7, 3), (1, 2))
+    ax, f = getSetup((8, 3), (1, 2))
     if fig4:
         comps = np.arange(1, 5)
     else:
@@ -68,20 +68,22 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     print("Size CP 4D: ", sizeCP, '\n')
     print("Size CP 3D: ", size3D, '\n')
 
-    ax[0].scatter(comps, tFacR2X, s=10)
-    ax[0].set_ylabel("Continuous Factorization R2X")
-    ax[0].set_xlabel("Number of Components")
+    ax[0].scatter(comps, tFacR2X, s=16)
+    ax[0].set_ylabel("Continuous Factorization R2X", fontsize=11.5)
+    ax[0].set_xlabel("Number of Components", fontsize='x-large')
     ax[0].set_xticks([x for x in comps])
+    ax[0].tick_params(axis='both', which='major', labelsize=10)
     ax[0].set_xticklabels([x for x in comps])
     ax[0].set_ylim(top=1.0)
     ax[0].set_xlim(0.5, np.amax(comps) + 0.5)
 
     ax[1].set_xscale("log", base=2)
-    ax[1].plot(sizeTfac, 1.0 - tFacR2X, ".", label="4D Continuous Tensor Factorization")
-    ax[1].plot(sizeCP, 1.0 - CPR2X, ".", label="4D CP Tensor Factorization")
-    ax[1].plot(size3D, 1.0 - R2X_3D, ".", label="3D CP Tensor Factorization")
-    ax[1].set_ylabel("Normalized Unexplained Variance")
-    ax[1].set_xlabel("Size of Reduced Data")
+    ax[1].plot(sizeTfac, 1.0 - tFacR2X, ".", markersize=8, label="4D Continuous Tensor Factorization")
+    ax[1].plot(sizeCP, 1.0 - CPR2X, ".", markersize=8, label="4D CP Tensor Factorization")
+    ax[1].plot(size3D, 1.0 - R2X_3D, ".", markersize=8, label="3D CP Tensor Factorization")
+    ax[1].set_ylabel("Normalized Unexplained Variance", fontsize=11.5)
+    ax[1].set_xlabel("Size of Reduced Data", fontsize='x-large')
+    ax[1].tick_params(axis='both', which='major', labelsize=10)
     ax[1].set_ylim(bottom=0.0)
     if fig4:
         topval = 1.0 - tFacR2X[0]

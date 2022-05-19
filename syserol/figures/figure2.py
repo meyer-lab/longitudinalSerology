@@ -9,7 +9,7 @@ from itertools import groupby
 
 
 def makeFigure(tensor=None):
-    ax, f = getSetup((10, 4), (1, 4))
+    ax, f = getSetup((6, 7), (2, 2))
 
     if tensor is None:
         df = earlyDaysdf()
@@ -45,12 +45,15 @@ def comp_plot(factors, xlabel, ylabel, plotLabel, ax, d=False):
 
         sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=newLabels, vmin=-1, vmax=1, ax=ax)
+        
     else:
         sns.heatmap(factors, cmap="PiYG",
                     xticklabels=xlabel, yticklabels=ylabel, vmin=-1, vmax=1, ax=ax)
     ax.set_yticklabels(ax.get_yticklabels(), rotation = 0)
-    ax.set_xlabel("Components")
-    ax.set_title(plotLabel)
+    ax.set_xlabel("Components", fontsize=11.5)
+    ax.set_title(plotLabel, fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=10)
+
 
 
 def lineplot(tfac, days, xlabel, ax):
@@ -59,4 +62,6 @@ def lineplot(tfac, days, xlabel, ax):
     cont_df[xlabel] = days
     cont_df = cont_df.set_index(xlabel)
     sns.lineplot(data = cont_df, palette ="colorblind", dashes=False, ax=ax)
-    ax.set_ylabel("Component Weight")
+    ax.set_ylabel("Component Weight", fontsize=11.5)
+    ax.set_xlabel(xlabel, fontsize=11.5)
+    ax.legend(fontsize='medium')
