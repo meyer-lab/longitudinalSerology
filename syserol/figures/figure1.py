@@ -29,8 +29,8 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     sizeCP = np.zeros(comps.shape)
 
     if tensor is None:
-        #df = earlyDaysdf()
-        tensor, _ = Tensor4D()
+        df = earlyDaysdf()
+        tensor, _ = Tensor4D(df)
     
     for i, cc in enumerate(comps):
         # Run factorization with continuous solve
