@@ -21,7 +21,7 @@ def R2X_Plots(tensor=None, tensor_3D=None, fig4=False):
     if fig4:
         comps = np.arange(1, 5)
     else:
-        comps = np.arange(1, 8)
+        comps = np.arange(1, 9)
 
     tFacR2X = np.zeros(comps.shape)
     sizeTfac = np.zeros(comps.shape)
